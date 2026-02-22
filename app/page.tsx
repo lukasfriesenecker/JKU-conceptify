@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Canvas from "@/components/Canvas";
-import { ThemeProvider } from "@/components/ThemeProvider";
+import Image from "next/image";
 
 function App() {
   const [mounted, setMounted] = useState(false);
@@ -13,19 +13,25 @@ function App() {
 
   if (!mounted) {
     return (
-      <div className="h-screen w-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground font-medium">
-          Lade Conceptify...
+      <div className="flex h-screen w-screen items-center justify-center bg-background text-foreground transition-colors duration-300">
+        <div className="flex flex-col items-center gap-4 animate-in fade-in duration-500">
+          <Image
+            src="/logo.svg"
+            alt="Conceptify Logo"
+            width={80}
+            height={80}
+            className="animate-bounce"
+            priority
+          />
+          <div className="text-muted-foreground font-medium text-sm tracking-wide">
+            Lade Conceptify...
+          </div>
         </div>
       </div>
     );
   }
 
-  return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <Canvas />
-    </ThemeProvider>
-  );
+  return <Canvas />;
 }
 
 export default App;
