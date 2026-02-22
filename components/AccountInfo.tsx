@@ -78,10 +78,6 @@ function AccountInfo() {
                         <span>Projekte</span>
                     </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                    Einstellungen
-                    </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />

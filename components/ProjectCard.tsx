@@ -1,0 +1,31 @@
+import { Button } from "./ui/button"
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card"
+
+interface ProjectCardProps {
+    title: string;
+    description: string;
+}
+
+function ProjectCard({ title, description }: ProjectCardProps) {
+    return (
+        <Card className="relative mx-auto w-full rounded-xs max-w-sm pt-0 flex flex-col h-full">
+            <div className="absolute inset-0 z-30 aspect-video bg-black/35" />
+            <img
+                src="https://avatar.vercel.sh/shadcn1"
+                alt="Event cover"
+                className="relative z-20 aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40"
+            />
+            <CardHeader>
+                <CardTitle>{title}</CardTitle>
+                <CardDescription>
+                    {description}
+                </CardDescription>
+            </CardHeader>
+            <CardFooter className="mt-auto">
+                <Button variant="secondary" className="w-full">Projekt öffnen</Button>
+            </CardFooter>
+        </Card>
+    )
+}
+
+export default ProjectCard
