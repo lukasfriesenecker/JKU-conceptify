@@ -11,21 +11,14 @@ import KeyboardWrapper from "./KeyboardWrapper";
 import ColorPicker from "./ColorPicker";
 import UnsavedChangesDialog from "./UnsavedChangesDialog";
 import { Button } from "./ui/button";
-import { Check, ChevronDown, Database, LogOut, Settings } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Check } from "lucide-react";
+
 import useSelectionState from "@/hooks/useSelectionState";
 import useConceptMapData from "@/hooks/useConceptMapData";
 import useFileOperations from "@/hooks/useFileOperations";
 import useConnectionDraw from "@/hooks/useConnectionDraw";
 import useExport from "@/hooks/useExport";
-import Link from "next/link";
+import AccountInfo from "./AccountInfo";
 
 function Canvas() {
   const { ref, viewport, resetZoom, panZoomLocked, setPanZoomLocked } =
@@ -226,50 +219,7 @@ function Canvas() {
         onHideConnectionPointsChange={setHideConnectionPoints}
       />
 
-
-
-      <div className="absolute top-4 right-4 hidden xl:block">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <div className="bg-card flex h-[54px] max-w-96 min-w-56 cursor-pointer items-center justify-between gap-4 rounded-sm border p-2 px-3 shadow-2xl outline-none">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-7 w-7">
-                  <AvatarImage src="" alt="User" />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
-                    LF
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col items-start">
-                  <span className="text-sm leading-tight font-medium">
-                    Lukas Friesenecker
-                  </span>
-                  <span className="text-muted-foreground text-[11px] leading-tight">
-                    friesenecker.lukas@gmail.com
-                  </span>
-                </div>
-              </div>
-              <ChevronDown className="text-muted-foreground h-4 w-4" />
-            </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem>
-              <Link href="/projects" className="flex w-full items-center gap-2">
-                <Database className="mr-2 h-4 w-4" />
-                <span>Projekte</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              Einstellungen
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut className="mr-2 h-4 w-4" />
-              Abmelden
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      <AccountInfo />
 
       <div className="pointer-events-none absolute inset-0">
         {selectedConceptIds.map((id) => {
