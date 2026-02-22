@@ -1,0 +1,93 @@
+"use client";
+
+import { useRef, useState } from "react";
+import Keyboard from "react-simple-keyboard";
+import type { SimpleKeyboard } from "react-simple-keyboard/build/interfaces";
+import "react-simple-keyboard/build/css/index.css";
+import { useTheme } from "./ThemeProvider";
+
+interface IProps {
+  id: number;
+  label: string;
+  type: "concept" | "connection";
+  onChange: (id: number, value: string, type: string) => void;
+  onCaretChange?: (id: number, position: number) => void;
+  onKeyboardReady?: (id: number, keyboard: SimpleKeyboard) => void;
+}
+
+function KeyboardWrapper({
+  id,
+  label,
+  type,
+  onChange,
+  onCaretChange,
+  onKeyboardReady,
+}: IProps) {
+  const [layoutName, setLayoutName] = useState("default");
+  const keyboardRef = useRef<SimpleKeyboard | null>(null);
+  const skipNextOnChange = useRef(false);
+  const { theme } = useTheme();
+  const keyboardTheme =
+    theme === "dark" ? "hg-theme-default dark" : "hg-theme-default light";
+
+  const onKeyPress = (button: string) => {
+    if (button === "{shift}" || button === "{lock}") {
+      setLayoutName(layoutName === "default" ? "shift" : "default");
+    }
+
+    if (button === "{enter}") {
+      if (type === "connection") return;
+
+      const keyboard = keyboardRef.current;
+      if (keyboard) {
+        const currentInput = keyboard.getInput() ?? "";
+        const caretPos = keyboard.getCaretPosition() ?? currentInput.length;
+        const newValue =
+          currentInput.slice(0, caretPos) + "\n" + currentInput.slice(caretPos);
+        skipNextOnChange.current = true;
+        keyboard.setInput(newValue);
+        keyboard.setCaretPosition(caretPos + 1);
+        onChange(id, newValue, type);
+        onCaretChange?.(id, caretPos + 1);
+      }
+    }
+  };
+
+  const handleOnChange = (value: string) => {
+    if (skipNextOnChange.current) {
+      skipNextOnChange.current = false;
+      return;
+    }
+    onChange(id, value, type);
+    const pos = keyboardRef.current?.getCaretPosition();
+    if (pos !== null && pos !== undefined) {
+      onCaretChange?.(id, pos);
+    }
+  };
+
+  return (
+    <div className="bg-card animate-in fade-in zoom-in-95 z-50 flex items-center gap-2 rounded-lg border p-1 shadow-xl duration-150">
+      <Keyboard
+        keyboardRef={(r) => (keyboardRef.current = r)}
+        layoutName={layoutName}
+        onChange={handleOnChange}
+        onKeyPress={onKeyPress}
+        onInit={(keyboard) => {
+          keyboard.setInput(label);
+          keyboard.setCaretPosition(label.length);
+          onCaretChange?.(id, label.length);
+          onKeyboardReady?.(id, keyboard);
+        }}
+        theme={keyboardTheme}
+        display={{
+          "{bksp}": "⌫",
+          "{enter}": "↵",
+          "{shift}": "⇧",
+          "{space}": "␣",
+        }}
+      />
+    </div>
+  );
+}
+
+export default KeyboardWrapper;
