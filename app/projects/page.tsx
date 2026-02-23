@@ -1,64 +1,103 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import AccountInfo from '@/components/AccountInfo'
 import ProjectCard from '@/components/ProjectCard'
 import { Input } from '@/components/ui/input'
-import { Search } from 'lucide-react'
+import { Search, Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 
-const mockProjects = [
-  {
-    id: 1,
-    title: 'Software Architecture',
-    description: 'High-level overview of our backend microservices.',
-    image: 'https://avatar.vercel.sh/shadcn1',
-  },
-  {
-    id: 2,
-    title: 'Database Schema v2',
-    description: 'Entity relationships for the new e-commerce feature.',
-    image: 'https://avatar.vercel.sh/shadcn2',
-  },
-  {
-    id: 3,
-    title: 'User Flow - Onboarding',
-    description: 'Visualizing the steps a new user takes during signup.',
-    image: 'https://avatar.vercel.sh/shadcn3',
-  },
-  {
-    id: 4,
-    title: 'Marketing Campaign Map',
-    description: 'Mind map of marketing strategies for Q3.',
-    image: 'https://avatar.vercel.sh/shadcn4',
-  },
-  {
-    id: 5,
-    title: 'Q4 Roadmap',
-    description: 'Strategic planning for the last quarter of the year.',
-    image: 'https://avatar.vercel.sh/shadcn5',
-  },
-  {
-    id: 6,
-    title: 'API Integrations',
-    description: 'Map out flow for third-party API webhooks.',
-    image: 'https://avatar.vercel.sh/shadcn6',
-  },
-  {
-    id: 7,
-    title: 'Design System',
-    description: 'Core UI components and their states.',
-    image: 'https://avatar.vercel.sh/shadcn7',
-  },
-]
+interface Project {
+  id: string
+  title: string
+  description: string
+  updatedAt: string
+}
 
 function ProjectsPage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
+  const [projects, setProjects] = useState<Project[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [projectToOpen, setProjectToOpen] = useState<string | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
 
-  const filteredProjects = mockProjects.filter(
+  useEffect(() => {
+    async function fetchProjects() {
+      try {
+        const res = await fetch('/api/projects')
+        if (res.ok) {
+          const data = await res.json()
+          setProjects(data)
+        }
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchProjects()
+  }, [])
+
+  const filteredProjects = projects.filter(
     (project) =>
       project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.description.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  const handleOpenProject = async (id: string) => {
+    const isDirty = localStorage.getItem('conceptify-is-dirty') === 'true'
+
+    if (isDirty) {
+      setProjectToOpen(id)
+      setIsDialogOpen(true)
+      return
+    }
+
+    confirmOpenProject(id)
+  }
+
+  const confirmOpenProject = async (id: string) => {
+    setIsDialogOpen(false)
+
+    toast.promise(
+      fetch(`/api/projects?id=${id}`).then(async (res) => {
+        if (!res.ok) {
+          throw new Error('Fehler beim Laden')
+        }
+        
+        const data = await res.json()
+
+        const projectData = {
+          title: data.title,
+          description: data.description,
+          concepts: data.concepts || [],
+          connections: data.connections || [],
+        }
+
+        localStorage.setItem('concept-map-data', JSON.stringify(projectData))
+        localStorage.setItem('conceptify-cloud-project-id', data.id)
+        router.push('/')
+      }),
+      {
+        loading: 'Öffne Projekt...',
+        success: 'Projekt geöffnet',
+        error: 'Fehler beim Laden des Projekts',
+        position: 'bottom-center',
+      },
+    )
+  }
 
   return (
     <div className="bg-dot-pattern flex h-svh w-full flex-col overflow-hidden">
@@ -76,13 +115,18 @@ function ProjectsPage() {
         </div>
 
         <div className="-mr-2 flex-1 overflow-y-auto pr-2">
-          {filteredProjects.length > 0 ? (
+          {isLoading ? (
+            <div className="flex h-64 items-center justify-center">
+              <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+            </div>
+          ) : filteredProjects.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 pb-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredProjects.map((project) => (
                 <ProjectCard
                   key={project.id}
                   title={project.title}
                   description={project.description}
+                  onClick={() => handleOpenProject(project.id)}
                 />
               ))}
             </div>
@@ -99,6 +143,28 @@ function ProjectsPage() {
           )}
         </div>
       </main>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ungespeicherte Änderungen</DialogTitle>
+            <DialogDescription>
+              Sie haben ungespeicherte Änderungen im aktuellen Projekt. Möchten
+              Sie diese wirklich verwerfen und das neue Projekt öffnen?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setIsDialogOpen(false)}>
+              Abbrechen
+            </Button>
+            <Button
+              onClick={() => projectToOpen && confirmOpenProject(projectToOpen)}
+            >
+              Trotzdem öffnen
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

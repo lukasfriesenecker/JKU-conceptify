@@ -48,7 +48,25 @@ function useFileOperations({
       connections,
     }
     setLastSavedData(JSON.stringify(initialData))
+
+    if (typeof window !== 'undefined') {
+      const savedId = localStorage.getItem('conceptify-cloud-project-id')
+      if (savedId) {
+        setCloudProjectId(savedId)
+        setCurrentSaveMethod('online')
+      }
+    }
   }, [])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (cloudProjectId) {
+        localStorage.setItem('conceptify-cloud-project-id', cloudProjectId)
+      } else {
+        localStorage.removeItem('conceptify-cloud-project-id')
+      }
+    }
+  }, [cloudProjectId])
 
   const currentDataString = JSON.stringify({
     title,
@@ -57,7 +75,14 @@ function useFileOperations({
     connections,
   })
 
-  const hasChanges = currentDataString !== lastSavedData
+  const hasChanges =
+    lastSavedData !== '' ? currentDataString !== lastSavedData : false
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && lastSavedData !== '') {
+      localStorage.setItem('conceptify-is-dirty', hasChanges ? 'true' : 'false')
+    }
+  }, [hasChanges, lastSavedData])
 
   const supportsFileSystemAccess =
     typeof window !== 'undefined' &&

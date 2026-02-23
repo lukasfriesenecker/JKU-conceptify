@@ -10,9 +10,10 @@ import {
 interface ProjectCardProps {
   title: string
   description: string
+  onClick?: () => void
 }
 
-function ProjectCard({ title, description }: ProjectCardProps) {
+function ProjectCard({ title, description, onClick }: ProjectCardProps) {
   return (
     <Card className="relative mx-auto flex h-full w-full max-w-sm flex-col rounded-xs pt-0">
       <div className="absolute inset-0 z-30 aspect-video bg-black/35" />
@@ -26,7 +27,7 @@ function ProjectCard({ title, description }: ProjectCardProps) {
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardFooter className="mt-auto">
-        <Button variant="secondary" className="w-full">
+        <Button variant="secondary" className="w-full" onClick={onClick}>
           Projekt öffnen
         </Button>
       </CardFooter>
