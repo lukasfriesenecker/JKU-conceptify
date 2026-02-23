@@ -32,6 +32,9 @@ function useFileOperations({
   const [fileHandle, setFileHandle] = useState<FileSystemFileHandle | null>(
     null,
   );
+  const [cloudProjectId, setCloudProjectId] = useState<string | null>(null);
+  const [currentSaveMethod, setCurrentSaveMethod] = useState<"file" | "online" | null>(null);
+  const [isSaveMethodDialogOpen, setIsSaveMethodDialogOpen] = useState(false);
   const [lastSavedData, setLastSavedData] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -115,6 +118,7 @@ function useFileOperations({
       });
 
       setFileHandle(handle);
+      setCurrentSaveMethod("file");
       await writeToFile(handle);
       toast.success("Datei gespeichert", { position: "bottom-center" });
       return true;
@@ -129,28 +133,69 @@ function useFileOperations({
     }
   };
 
-  const handleSave = async (): Promise<boolean> => {
-    if (!supportsFileSystemAccess) {
-      return handleDownload();
-    }
-
+  const handleSaveOnline = async (): Promise<boolean> => {
     try {
-      if (!fileHandle) {
-        return handleSaveAs();
+      const projectData = getProjectData();
+      const payload = {
+        id: cloudProjectId,
+        ...projectData,
+      };
+
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to save project");
       }
 
-      await writeToFile(fileHandle);
-      toast.success("Datei gespeichert", { position: "bottom-center" });
+      const data = await res.json();
+      setCloudProjectId(data.id);
+      setCurrentSaveMethod("online");
+      setLastSavedData(JSON.stringify(projectData));
+
+      toast.success("Online gespeichert", { position: "bottom-center" });
       return true;
     } catch (error) {
-      if ((error as Error).name !== "AbortError") {
-        toast.error("Fehler beim Speichern der Datei", {
-          position: "bottom-center",
-        });
-        console.error(error);
-      }
+      toast.error("Fehler beim Speichern", { position: "bottom-center" });
       return false;
     }
+  };
+
+  const handleSave = async (): Promise<boolean> => {
+    if (currentSaveMethod === "online") {
+      return handleSaveOnline();
+    }
+    
+    if (currentSaveMethod === "file") {
+      if (!supportsFileSystemAccess) {
+        return handleDownload();
+      }
+
+      try {
+        if (!fileHandle) {
+          return handleSaveAs();
+        }
+
+        await writeToFile(fileHandle);
+
+        toast.success("Datei gespeichert", { position: "bottom-center" });
+        return true;
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") {
+          toast.error("Fehler beim Speichern der Datei", { position: "bottom-center" });
+        }
+        
+        return false;
+      }
+    }
+
+    setIsSaveMethodDialogOpen(true);
+    return false;
   };
 
   const handleSaveProjectInfo = (newTitle: string, newDesc: string) => {
@@ -170,6 +215,8 @@ function useFileOperations({
         setTitle(data.title);
         setDescription(data.description);
         setFileHandle(null);
+        setCloudProjectId(null);
+        setCurrentSaveMethod("file");
         clearSelection();
         setLastSavedData(JSON.stringify(data));
 
@@ -207,6 +254,8 @@ function useFileOperations({
       setTitle(data.title);
       setDescription(data.description);
       setFileHandle(handle);
+      setCloudProjectId(null);
+      setCurrentSaveMethod("file");
       clearSelection();
       setLastSavedData(JSON.stringify(data));
 
@@ -234,6 +283,8 @@ function useFileOperations({
     setTitle("Neue Concept Map");
     setDescription("Neue Concept Map Beschreibung");
     setFileHandle(null);
+    setCloudProjectId(null);
+    setCurrentSaveMethod(null);
     clearSelection();
     setLastSavedData("");
 
@@ -243,6 +294,7 @@ function useFileOperations({
   return {
     handleSave,
     handleSaveAs,
+    handleSaveOnline,
     handleSaveProjectInfo,
     handleOpen,
     handleNewProject,
@@ -251,6 +303,9 @@ function useFileOperations({
     hasChanges,
     supportsFileSystemAccess,
     fileInputRef,
+    isSaveMethodDialogOpen,
+    setIsSaveMethodDialogOpen,
+    currentSaveMethod,
   };
 }
 

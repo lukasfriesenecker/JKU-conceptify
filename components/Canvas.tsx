@@ -10,6 +10,7 @@ import ConnectionMenu from "./ConnectionMenu";
 import KeyboardWrapper from "./KeyboardWrapper";
 import ColorPicker from "./ColorPicker";
 import UnsavedChangesDialog from "./UnsavedChangesDialog";
+import SaveMethodDialog from "./SaveMethodDialog";
 import { Button } from "./ui/button";
 import { Check } from "lucide-react";
 
@@ -74,6 +75,9 @@ function Canvas() {
     hasChanges,
     supportsFileSystemAccess,
     fileInputRef,
+    isSaveMethodDialogOpen,
+    setIsSaveMethodDialogOpen,
+    handleSaveOnline,
   } = useFileOperations({
     title,
     description,
@@ -203,6 +207,7 @@ function Canvas() {
         onSaveProjectInfo={handleSaveProjectInfo}
         onSave={handleSave}
         onSaveAs={handleSaveAs}
+        onSaveOnline={handleSaveOnline}
         onOpen={guardedOpen}
         onNewProject={guardedNewProject}
         onDownload={handleDownload}
@@ -490,6 +495,13 @@ function Canvas() {
         onSave={handleDialogSave}
         onDiscard={handleDialogDiscard}
         onCancel={handleDialogCancel}
+      />
+
+      <SaveMethodDialog
+        open={isSaveMethodDialogOpen}
+        onOpenChange={setIsSaveMethodDialogOpen}
+        onSaveOnline={handleSaveOnline}
+        onSaveFile={handleSaveAs}
       />
 
       <input

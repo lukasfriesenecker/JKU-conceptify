@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Cloud,
   Download,
   File,
   FileDown,
@@ -53,6 +54,7 @@ interface ToolbarProps {
   onOpen: () => void;
   onNewProject: () => void;
   onDownload: () => void;
+  onSaveOnline: () => void;
   isSaveDisabled: boolean;
   supportsFileSystemAccess: boolean;
   zoomLevel: number;
@@ -75,6 +77,7 @@ function Toolbar({
   onOpen,
   onNewProject,
   onDownload,
+  onSaveOnline,
   isSaveDisabled,
   supportsFileSystemAccess,
   zoomLevel,
@@ -148,17 +151,17 @@ function Toolbar({
               </MenubarItem>
               <MenubarItem onClick={onOpen}>
                 <FolderOpen className="text-card-foreground size-4" />
-                Projekt öffnen
+                Datei öffnen
               </MenubarItem>
               {isFileSystemSupported ? (
                 <>
                   <MenubarItem disabled={isSaveDisabled} onClick={onSave}>
                     <Save className="text-card-foreground size-4" />
-                    Speichern
+                    Datei speichern
                   </MenubarItem>
                   <MenubarItem onClick={onSaveAs}>
                     <FolderPlus className="text-card-foreground size-4" />
-                    Speichern unter
+                    Datei speichern unter
                   </MenubarItem>
                 </>
               ) : (
@@ -167,6 +170,10 @@ function Toolbar({
                   Herunterladen
                 </MenubarItem>
               )}
+              <MenubarItem disabled={isSaveDisabled} onClick={onSaveOnline}>
+                <Cloud className="text-card-foreground size-4" />
+                Online speichern
+              </MenubarItem>
               <MenubarSub>
                 <MenubarSubTrigger className="hidden md:flex">
                   <Download className="text-card-foreground size-4" />
