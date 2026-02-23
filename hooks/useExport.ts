@@ -285,6 +285,77 @@ function useExport({
     [buildExportSvg, title]
   )
 
+  const generateThumbnailBase64 = useCallback(async (): Promise<string | null> => {
+    return new Promise((resolve) => {
+      const result = buildExportSvg()
+      if (!result) {
+        resolve(null)
+        return
+      }
+
+      const { exportSvg, width, height } = result
+
+      const svgString = new XMLSerializer().serializeToString(exportSvg)
+      const blob = new Blob([svgString], {
+        type: 'image/svg+xml;charset=utf-8',
+      })
+      const url = URL.createObjectURL(blob)
+
+      const scale = 0.5
+
+      const targetAspectRatio = 16 / 9
+      const currentAspectRatio = width / height
+
+      let finalWidth = width
+      let finalHeight = height
+
+      if (currentAspectRatio > targetAspectRatio) {
+        finalHeight = width / targetAspectRatio
+      } else {
+        finalWidth = height * targetAspectRatio
+      }
+
+      const paddingRatio = 1.15
+      finalWidth *= paddingRatio
+      finalHeight *= paddingRatio
+
+      const offsetX = (finalWidth - width) / 2
+      const offsetY = (finalHeight - height) / 2
+
+      const canvas = document.createElement('canvas')
+      canvas.width = finalWidth * scale
+      canvas.height = finalHeight * scale
+      const context = canvas.getContext('2d')
+
+      if (!context) {
+        resolve(null)
+        return
+      }
+
+      const bodyStyles = getComputedStyle(document.body)
+      const bgColor = bodyStyles.getPropertyValue('background-color') || 'white'
+      context.fillStyle = bgColor
+      context.fillRect(0, 0, canvas.width, canvas.height)
+
+      const img = new Image()
+      img.onload = () => {
+        context.scale(scale, scale)
+        context.drawImage(img, offsetX, offsetY, width, height)
+        URL.revokeObjectURL(url)
+
+        const base64 = canvas.toDataURL('image/jpeg', 0.6)
+        resolve(base64)
+      }
+      
+      img.onerror = () => {
+        URL.revokeObjectURL(url)
+        resolve(null)
+      }
+
+      img.src = url
+    })
+  }, [buildExportSvg])
+
   const exportAsPng = useCallback(() => {
     renderToCanvas('image/png', 'png')
   }, [renderToCanvas])
@@ -336,7 +407,7 @@ function useExport({
     img.src = url
   }, [buildExportSvg, title])
 
-  return { exportAsPng, exportAsJpg, exportAsPdf }
+  return { exportAsPng, exportAsJpg, exportAsPdf, generateThumbnailBase64 }
 }
 
 export default useExport

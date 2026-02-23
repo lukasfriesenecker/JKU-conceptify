@@ -88,6 +88,7 @@ function Canvas() {
     setConcepts,
     setConnections,
     clearSelection,
+    getThumbnail: () => generateThumbnailBase64(),
   })
 
   const [pendingAction, setPendingAction] = useState<'open' | 'new' | null>(
@@ -152,7 +153,7 @@ function Canvas() {
     toCanvasCoordinates,
   })
 
-  const { exportAsPng, exportAsJpg, exportAsPdf } = useExport({
+  const { exportAsPng, exportAsJpg, exportAsPdf, generateThumbnailBase64 } = useExport({
     svgRef: ref,
     title,
     concepts,

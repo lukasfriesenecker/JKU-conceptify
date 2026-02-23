@@ -16,7 +16,7 @@ export async function POST(req: Request) {
 
     const userId = session.user.id
     const body = await req.json()
-    const { id, title, description, concepts, connections } = body
+    const { id, title, description, concepts, connections, thumbnail } = body
 
     const client = await clientPromise
     const db = client.db()
@@ -33,6 +33,7 @@ export async function POST(req: Request) {
             description,
             concepts,
             connections,
+            thumbnail,
             updatedAt: now,
           },
         }
@@ -50,6 +51,7 @@ export async function POST(req: Request) {
         description,
         concepts,
         connections,
+        thumbnail,
         createdAt: now,
         updatedAt: now,
       })
@@ -107,7 +109,7 @@ export async function GET(req: Request) {
 
     const projects = await collection
       .find({ userId })
-      .project({ _id: 1, title: 1, description: 1, updatedAt: 1 })
+      .project({ _id: 1, title: 1, description: 1, thumbnail: 1, updatedAt: 1 })
       .sort({ updatedAt: -1 })
       .toArray()
 
@@ -115,10 +117,48 @@ export async function GET(req: Request) {
       id: p._id.toString(),
       title: p.title,
       description: p.description,
+      thumbnail: p.thumbnail,
       updatedAt: p.updatedAt,
     }))
 
     return NextResponse.json(formattedProjects)
+  } catch (error) {
+    return NextResponse.json({ status: 500 })
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    })
+
+    if (!session) {
+      return NextResponse.json({ status: 401 })
+    }
+
+    const userId = session.user.id
+    const { searchParams } = new URL(req.url)
+    const projectId = searchParams.get('id')
+    
+    if (!projectId) {
+      return NextResponse.json({ status: 404 })
+    }
+
+    const client = await clientPromise
+    const db = client.db()
+    const collection = db.collection('projects')
+
+    const result = await collection.deleteOne({
+      _id: new ObjectId(projectId),
+      userId,
+    })
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json({ status: 404 })
+    }
+
+    return NextResponse.json({ status: 200 })
   } catch (error) {
     return NextResponse.json({ status: 500 })
   }

@@ -21,6 +21,7 @@ interface Project {
   id: string
   title: string
   description: string
+  thumbnail?: string
   updatedAt: string
 }
 
@@ -31,6 +32,8 @@ function ProjectsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [projectToOpen, setProjectToOpen] = useState<string | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchProjects() {
@@ -99,6 +102,36 @@ function ProjectsPage() {
     )
   }
 
+  const handleDeleteProject = (id: string) => {
+    setProjectToDelete(id)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const confirmDeleteProject = async () => {
+    if (!projectToDelete) return
+
+    setIsDeleteDialogOpen(false)
+    const id = projectToDelete
+    setProjectToDelete(null)
+
+    toast.promise(
+      fetch(`/api/projects?id=${id}`, {
+        method: 'DELETE',
+      }).then(async (res) => {
+        if (!res.ok) {
+          throw new Error('Fehler beim Löschen')
+        }
+        setProjects(prev => prev.filter(p => p.id !== id))
+      }),
+      {
+        loading: 'Lösche Projekt...',
+        success: 'Projekt gelöscht',
+        error: 'Fehler beim Löschen des Projekts',
+        position: 'bottom-center',
+      }
+    )
+  }
+
   return (
     <div className="bg-dot-pattern flex h-svh w-full flex-col overflow-hidden">
       <AccountInfo />
@@ -126,7 +159,12 @@ function ProjectsPage() {
                   key={project.id}
                   title={project.title}
                   description={project.description}
+                  thumbnail={project.thumbnail}
                   onClick={() => handleOpenProject(project.id)}
+                  onDelete={(e) => {
+                    e.stopPropagation()
+                    handleDeleteProject(project.id)
+                  }}
                 />
               ))}
             </div>
@@ -161,6 +199,28 @@ function ProjectsPage() {
               onClick={() => projectToOpen && confirmOpenProject(projectToOpen)}
             >
               Trotzdem öffnen
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Projekt löschen</DialogTitle>
+            <DialogDescription>
+              Möchten Sie dieses Projekt wirklich löschen?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setIsDeleteDialogOpen(false)}>
+              Abbrechen
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteProject}
+            >
+              Löschen
             </Button>
           </DialogFooter>
         </DialogContent>
