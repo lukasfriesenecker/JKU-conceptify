@@ -1,29 +1,29 @@
-"use client";
+'use client'
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from 'react'
 
 interface ConnectionProps {
-  id: number;
-  label: string;
+  id: number
+  label: string
   from: {
-    x: number;
-    y: number;
-  };
+    x: number
+    y: number
+  }
   to: {
-    x: number;
-    y: number;
-  };
-  onLabelChange: (id: number, textWidth: string, type: string) => void;
-  width: string;
-  caretPosition?: number;
-  onCaretClick?: (id: number, position: number) => void;
+    x: number
+    y: number
+  }
+  onLabelChange: (id: number, textWidth: string, type: string) => void
+  width: string
+  caretPosition?: number
+  onCaretClick?: (id: number, position: number) => void
   onStartConnection?: (
     fromId: number,
-    event: React.PointerEvent<Element>,
-  ) => void;
-  extraTargetPositions?: { x: number; y: number }[];
-  isSelected?: boolean;
-  hideConnectionPoints?: boolean;
+    event: React.PointerEvent<Element>
+  ) => void
+  extraTargetPositions?: { x: number; y: number }[]
+  isSelected?: boolean
+  hideConnectionPoints?: boolean
 }
 
 function Connection({
@@ -40,153 +40,152 @@ function Connection({
   isSelected,
   hideConnectionPoints,
 }: ConnectionProps) {
-  const x = (from.x + to.x) / 2;
-  const y = (from.y + to.y) / 2;
-  const height = "30";
-  const paddingLeft = hideConnectionPoints ? 7 : 37;
-  const paddingRight = 7;
-  const rectWidth = parseFloat(width) + paddingLeft + paddingRight;
-  const rectHeight = parseFloat(height) + 4;
-  const rectLeft = x - rectWidth / 2;
-  const rectTop = y - rectHeight / 2;
-  const textRef = useRef<SVGTextElement | null>(null);
-  const tspanRefs = useRef<(SVGTSpanElement | null)[]>([]);
+  const x = (from.x + to.x) / 2
+  const y = (from.y + to.y) / 2
+  const height = '30'
+  const paddingLeft = hideConnectionPoints ? 7 : 37
+  const paddingRight = 7
+  const rectWidth = parseFloat(width) + paddingLeft + paddingRight
+  const rectHeight = parseFloat(height) + 4
+  const rectLeft = x - rectWidth / 2
+  const rectTop = y - rectHeight / 2
+  const textRef = useRef<SVGTextElement | null>(null)
+  const tspanRefs = useRef<(SVGTSpanElement | null)[]>([])
   const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(
-    null,
-  );
+    null
+  )
 
   useLayoutEffect(() => {
-    if (!textRef.current) return;
+    if (!textRef.current) return
 
-    const bbox = textRef.current.getBBox();
-    const textWidth = Math.max(0, bbox.width);
+    const bbox = textRef.current.getBBox()
+    const textWidth = Math.max(0, bbox.width)
 
-    onLabelChange(id, `${textWidth}px`, "connection");
-  }, [label, id, onLabelChange]);
+    onLabelChange(id, `${textWidth}px`, 'connection')
+  }, [label, id, onLabelChange])
 
   useLayoutEffect(() => {
     if (caretPosition === undefined || caretPosition === null) {
-      setCursorPos(null);
-      return;
+      setCursorPos(null)
+      return
     }
 
     if (!textRef.current) {
-      setCursorPos(null);
-      return;
+      setCursorPos(null)
+      return
     }
 
-    const lines = label.split("\n");
-    let remaining = caretPosition;
-    let lineIndex = 0;
+    const lines = label.split('\n')
+    let remaining = caretPosition
+    let lineIndex = 0
 
     for (let i = 0; i < lines.length; i++) {
       if (remaining <= lines[i].length) {
-        lineIndex = i;
-        break;
+        lineIndex = i
+        break
       }
 
-      remaining -= lines[i].length + 1;
-      lineIndex = Math.min(i + 1, lines.length - 1);
+      remaining -= lines[i].length + 1
+      lineIndex = Math.min(i + 1, lines.length - 1)
     }
 
     const charOffset = Math.max(
       0,
-      Math.min(remaining, (lines[lineIndex] || "").length),
-    );
+      Math.min(remaining, (lines[lineIndex] || '').length)
+    )
 
-    const tspan = tspanRefs.current[lineIndex];
+    const tspan = tspanRefs.current[lineIndex]
     if (!tspan) {
-      setCursorPos(null);
-      return;
+      setCursorPos(null)
+      return
     }
 
-    const tspanBBox = tspan.getBBox();
-    let cursorX = tspanBBox.x;
+    const tspanBBox = tspan.getBBox()
+    let cursorX = tspanBBox.x
 
     if (charOffset > 0) {
       try {
-        const endPos = tspan.getEndPositionOfChar(charOffset - 1);
-        cursorX = endPos.x;
+        const endPos = tspan.getEndPositionOfChar(charOffset - 1)
+        cursorX = endPos.x
       } catch {
         try {
-          cursorX = tspanBBox.x + tspan.getSubStringLength(0, charOffset);
+          cursorX = tspanBBox.x + tspan.getSubStringLength(0, charOffset)
         } catch {
-          cursorX = tspanBBox.x;
+          cursorX = tspanBBox.x
         }
       }
     }
 
-    setCursorPos({ x: cursorX, y: tspanBBox.y });
-  }, [caretPosition, label, x, y]);
+    setCursorPos({ x: cursorX, y: tspanBBox.y })
+  }, [caretPosition, label, x, y])
 
   const handleTextClick = (e: React.MouseEvent<SVGTextElement>) => {
-    if (caretPosition === undefined || !onCaretClick || !textRef.current)
-      return;
-    e.stopPropagation();
+    if (caretPosition === undefined || !onCaretClick || !textRef.current) return
+    e.stopPropagation()
 
-    const svg = textRef.current.ownerSVGElement;
-    if (!svg) return;
+    const svg = textRef.current.ownerSVGElement
+    if (!svg) return
 
-    const point = svg.createSVGPoint();
-    point.x = e.clientX;
-    point.y = e.clientY;
+    const point = svg.createSVGPoint()
+    point.x = e.clientX
+    point.y = e.clientY
 
     const svgPoint = point.matrixTransform(
-      textRef.current.getScreenCTM()?.inverse(),
-    );
+      textRef.current.getScreenCTM()?.inverse()
+    )
 
-    const lines = label.split("\n");
-    let bestLine = 0;
-    let bestDist = Infinity;
+    const lines = label.split('\n')
+    let bestLine = 0
+    let bestDist = Infinity
 
     for (let i = 0; i < lines.length; i++) {
-      const tspan = tspanRefs.current[i];
-      if (!tspan) continue;
+      const tspan = tspanRefs.current[i]
+      if (!tspan) continue
 
-      const bbox = tspan.getBBox();
-      const centerY = bbox.y + bbox.height / 2;
-      const dist = Math.abs(svgPoint.y - centerY);
+      const bbox = tspan.getBBox()
+      const centerY = bbox.y + bbox.height / 2
+      const dist = Math.abs(svgPoint.y - centerY)
 
       if (dist < bestDist) {
-        bestDist = dist;
-        bestLine = i;
+        bestDist = dist
+        bestLine = i
       }
     }
 
-    const tspan = tspanRefs.current[bestLine];
-    let charIndex = 0;
+    const tspan = tspanRefs.current[bestLine]
+    let charIndex = 0
 
     if (tspan) {
-      const lineLen = lines[bestLine].length;
+      const lineLen = lines[bestLine].length
       try {
-        const charNum = tspan.getCharNumAtPosition(svgPoint);
+        const charNum = tspan.getCharNumAtPosition(svgPoint)
 
         if (charNum >= 0) {
           const charStart =
             charNum === 0
               ? tspan.getBBox().x
-              : tspan.getEndPositionOfChar(charNum - 1).x;
-          const charEnd = tspan.getEndPositionOfChar(charNum).x;
-          const charMid = (charStart + charEnd) / 2;
-          charIndex = svgPoint.x > charMid ? charNum + 1 : charNum;
+              : tspan.getEndPositionOfChar(charNum - 1).x
+          const charEnd = tspan.getEndPositionOfChar(charNum).x
+          const charMid = (charStart + charEnd) / 2
+          charIndex = svgPoint.x > charMid ? charNum + 1 : charNum
         } else {
-          charIndex = lineLen;
+          charIndex = lineLen
         }
       } catch {
-        charIndex = lineLen;
+        charIndex = lineLen
       }
     }
 
-    let globalPos = 0;
+    let globalPos = 0
 
     for (let i = 0; i < bestLine; i++) {
-      globalPos += lines[i].length + 1;
+      globalPos += lines[i].length + 1
     }
 
-    globalPos += charIndex;
+    globalPos += charIndex
 
-    onCaretClick(id, globalPos);
-  };
+    onCaretClick(id, globalPos)
+  }
 
   return (
     <g>
@@ -217,7 +216,7 @@ function Connection({
           height={rectHeight}
           rx="17"
           ry="17"
-          className={`fill-card stroke-1 ${isSelected ? "stroke-primary" : "stroke-border"}`}
+          className={`fill-card stroke-1 ${isSelected ? 'stroke-primary' : 'stroke-border'}`}
         />
 
         <circle
@@ -225,11 +224,11 @@ function Connection({
           cy={y}
           r={12}
           className="fill-ring cursor-pointer"
-          style={{ display: hideConnectionPoints ? "none" : undefined }}
+          style={{ display: hideConnectionPoints ? 'none' : undefined }}
           onPointerDown={(e) => {
-            e.stopPropagation();
+            e.stopPropagation()
             if (onStartConnection) {
-              onStartConnection(id, e);
+              onStartConnection(id, e)
             }
           }}
         />
@@ -241,19 +240,19 @@ function Connection({
           textAnchor="start"
           dominantBaseline="middle"
           className="fill-card-foreground text-xs font-medium select-none"
-          style={{ cursor: caretPosition !== undefined ? "text" : undefined }}
+          style={{ cursor: caretPosition !== undefined ? 'text' : undefined }}
           onClick={handleTextClick}
         >
-          {label.split("\n").map((line, i) => (
+          {label.split('\n').map((line, i) => (
             <tspan
               key={i}
               ref={(el) => {
-                tspanRefs.current[i] = el;
+                tspanRefs.current[i] = el
               }}
               x={rectLeft + paddingLeft}
-              dy={i === 0 ? 0 : "1.2em"}
+              dy={i === 0 ? 0 : '1.2em'}
             >
-              {line || "\u200B"}
+              {line || '\u200B'}
             </tspan>
           ))}
         </text>
@@ -269,7 +268,7 @@ function Connection({
         )}
       </g>
     </g>
-  );
+  )
 }
 
-export default Connection;
+export default Connection

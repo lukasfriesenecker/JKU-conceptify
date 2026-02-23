@@ -1,15 +1,15 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { SketchPicker } from "react-color";
-import type { IConcept } from "../types/Concept";
-import { X } from "lucide-react";
+import { useState } from 'react'
+import { SketchPicker } from 'react-color'
+import type { IConcept } from '../types/Concept'
+import { X } from 'lucide-react'
 interface IProps {
-  concept: IConcept;
-  viewport: { x: number; y: number; scale: number };
-  onColorChange: (id: number, color: any, type: string) => void;
-  onClose: (id: number) => void;
-  target: string;
+  concept: IConcept
+  viewport: { x: number; y: number; scale: number }
+  onColorChange: (id: number, color: any, type: string) => void
+  onClose: (id: number) => void
+  target: string
 }
 function ColorPicker({
   concept,
@@ -18,16 +18,16 @@ function ColorPicker({
   onClose,
   target,
 }: IProps) {
-  const [background, setBackground] = useState("#fff");
-  const screenX = concept.x * viewport.scale + viewport.x;
-  const screenY = concept.y * viewport.scale + viewport.y;
+  const [background, setBackground] = useState('#fff')
+  const screenX = concept.x * viewport.scale + viewport.x
+  const screenY = concept.y * viewport.scale + viewport.y
 
-  const height = parseFloat(concept.height) * viewport.scale;
+  const height = parseFloat(concept.height) * viewport.scale
 
   const handleChangeComplete = (color: any) => {
-    setBackground(color);
-    onColorChange(concept.id, color, target);
-  };
+    setBackground(color)
+    onColorChange(concept.id, color, target)
+  }
 
   return (
     <div
@@ -35,8 +35,8 @@ function ColorPicker({
       style={{
         left: `${screenX}px`,
         top: `${screenY + height + 10}px`,
-        transform: "scale(1.5)",
-        transformOrigin: "top left",
+        transform: 'scale(1.5)',
+        transformOrigin: 'top left',
       }}
     >
       <button
@@ -53,7 +53,7 @@ function ColorPicker({
         onChangeComplete={handleChangeComplete}
       />
     </div>
-  );
+  )
 }
 
-export default ColorPicker;
+export default ColorPicker

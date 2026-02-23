@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import {
   Dialog,
@@ -7,14 +7,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 
 interface UnsavedChangesDialogProps {
-  open: boolean;
-  onSave: () => void;
-  onDiscard: () => void;
-  onCancel: () => void;
+  open: boolean
+  onSave: () => void
+  onDiscard: () => void
+  onCancel: () => void
 }
 
 function UnsavedChangesDialog({
@@ -44,7 +44,7 @@ function UnsavedChangesDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
+  )
 }
 
-export default UnsavedChangesDialog;
+export default UnsavedChangesDialog

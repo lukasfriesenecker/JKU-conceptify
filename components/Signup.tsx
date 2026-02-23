@@ -1,41 +1,41 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { authClient } from "@/lib/auth-client"
-import Link from "next/link"
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { authClient } from '@/lib/auth-client'
+import Link from 'next/link'
 
-import { Button } from "@/components/ui/button"
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from '@/components/ui/card'
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+} from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
 
 export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
   const router = useRouter()
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [error, setError] = useState("")
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault()
-    setError("")
+    setError('')
 
     if (password !== confirmPassword) {
-      setError("Passwörter stimmen nicht überein.")
+      setError('Passwörter stimmen nicht überein.')
       return
     }
 
@@ -50,9 +50,9 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
     setIsLoading(false)
 
     if (signupError) {
-      setError("Bei der Registrierung ist ein Fehler aufgetreten.")
+      setError('Bei der Registrierung ist ein Fehler aufgetreten.')
     } else {
-      router.push("/")
+      router.push('/')
     }
   }
 
@@ -74,11 +74,11 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
             )}
             <Field>
               <FieldLabel htmlFor="name">Name</FieldLabel>
-              <Input 
-                id="name" 
-                type="text" 
-                placeholder="Max Mustermann" 
-                required 
+              <Input
+                id="name"
+                type="text"
+                placeholder="Max Mustermann"
+                required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
@@ -96,39 +96,42 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
             </Field>
             <Field>
               <FieldLabel htmlFor="password">Passwort</FieldLabel>
-              <Input 
-                id="password" 
-                type="password" 
+              <Input
+                id="password"
+                type="password"
                 placeholder="********"
-                required 
+                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-              <FieldDescription>
-                Mindestens 8 Zeichen lang.
-              </FieldDescription>
+              <FieldDescription>Mindestens 8 Zeichen lang.</FieldDescription>
             </Field>
             <Field>
               <FieldLabel htmlFor="confirm-password">
                 Passwort bestätigen
               </FieldLabel>
-              <Input 
-                id="confirm-password" 
-                type="password" 
+              <Input
+                id="confirm-password"
+                type="password"
                 placeholder="********"
-                required 
+                required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
-              <FieldDescription>Bitte bestätigen Sie Ihr Passwort.</FieldDescription>
+              <FieldDescription>
+                Bitte bestätigen Sie Ihr Passwort.
+              </FieldDescription>
             </Field>
             <FieldGroup>
               <Field>
                 <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "Account wird erstellt..." : "Account erstellen"}
+                  {isLoading ? 'Account wird erstellt...' : 'Account erstellen'}
                 </Button>
                 <FieldDescription className="px-6 text-center">
-                  Sie haben bereits einen Account? <Link href="/login" className="hover:underline text-primary">Anmelden</Link>
+                  Sie haben bereits einen Account?{' '}
+                  <Link href="/login" className="text-primary hover:underline">
+                    Anmelden
+                  </Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>

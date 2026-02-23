@@ -1,30 +1,30 @@
-"use client";
+'use client'
 
-import { useCallback, useRef, useState, type MouseEvent } from "react";
-import Connection from "./Connection";
-import Concept from "./Concept";
-import usePanZoom from "../hooks/usePanZoom";
-import Toolbar from "./Toolbar";
-import ConceptMenu from "./ConceptMenu";
-import ConnectionMenu from "./ConnectionMenu";
-import KeyboardWrapper from "./KeyboardWrapper";
-import ColorPicker from "./ColorPicker";
-import UnsavedChangesDialog from "./UnsavedChangesDialog";
-import SaveMethodDialog from "./SaveMethodDialog";
-import { Button } from "./ui/button";
-import { Check } from "lucide-react";
+import { useCallback, useRef, useState, type MouseEvent } from 'react'
+import Connection from './Connection'
+import Concept from './Concept'
+import usePanZoom from '../hooks/usePanZoom'
+import Toolbar from './Toolbar'
+import ConceptMenu from './ConceptMenu'
+import ConnectionMenu from './ConnectionMenu'
+import KeyboardWrapper from './KeyboardWrapper'
+import ColorPicker from './ColorPicker'
+import UnsavedChangesDialog from './UnsavedChangesDialog'
+import SaveMethodDialog from './SaveMethodDialog'
+import { Button } from './ui/button'
+import { Check } from 'lucide-react'
 
-import useSelectionState from "@/hooks/useSelectionState";
-import useConceptMapData from "@/hooks/useConceptMapData";
-import useFileOperations from "@/hooks/useFileOperations";
-import useConnectionDraw from "@/hooks/useConnectionDraw";
-import useExport from "@/hooks/useExport";
-import AccountInfo from "./AccountInfo";
+import useSelectionState from '@/hooks/useSelectionState'
+import useConceptMapData from '@/hooks/useConceptMapData'
+import useFileOperations from '@/hooks/useFileOperations'
+import useConnectionDraw from '@/hooks/useConnectionDraw'
+import useExport from '@/hooks/useExport'
+import AccountInfo from './AccountInfo'
 
 function Canvas() {
   const { ref, viewport, resetZoom, panZoomLocked, setPanZoomLocked } =
-    usePanZoom();
-  const [hideConnectionPoints, setHideConnectionPoints] = useState(false);
+    usePanZoom()
+  const [hideConnectionPoints, setHideConnectionPoints] = useState(false)
   const {
     selectedConceptIds,
     selectedConnectionIds,
@@ -43,7 +43,7 @@ function Canvas() {
     editConceptTextColor,
     handleOnEnter,
     handleColorPickerClose,
-  } = useSelectionState();
+  } = useSelectionState()
   const {
     title,
     setTitle,
@@ -63,7 +63,7 @@ function Canvas() {
     getEndpointCenter,
     lableChangeWidthAdjustment,
     addConcept,
-  } = useConceptMapData();
+  } = useConceptMapData()
   const {
     handleSave,
     handleSaveAs,
@@ -88,57 +88,57 @@ function Canvas() {
     setConcepts,
     setConnections,
     clearSelection,
-  });
+  })
 
-  const [pendingAction, setPendingAction] = useState<"open" | "new" | null>(
-    null,
-  );
+  const [pendingAction, setPendingAction] = useState<'open' | 'new' | null>(
+    null
+  )
 
   const guardedNewProject = () => {
     if (hasChanges) {
-      setPendingAction("new");
+      setPendingAction('new')
     } else {
-      handleNewProject();
+      handleNewProject()
     }
-  };
+  }
 
   const guardedOpen = () => {
     if (hasChanges) {
-      setPendingAction("open");
+      setPendingAction('open')
     } else {
-      handleOpen();
+      handleOpen()
     }
-  };
+  }
 
   const handleDialogSave = async () => {
-    const action = pendingAction;
-    const saved = await handleSave();
-    if (!saved) return;
-    setPendingAction(null);
-    if (action === "new") handleNewProject();
-    else if (action === "open") handleOpen();
-  };
+    const action = pendingAction
+    const saved = await handleSave()
+    if (!saved) return
+    setPendingAction(null)
+    if (action === 'new') handleNewProject()
+    else if (action === 'open') handleOpen()
+  }
 
   const handleDialogDiscard = () => {
-    const action = pendingAction;
-    setPendingAction(null);
-    if (action === "new") handleNewProject();
-    else if (action === "open") handleOpen();
-  };
+    const action = pendingAction
+    setPendingAction(null)
+    if (action === 'new') handleNewProject()
+    else if (action === 'open') handleOpen()
+  }
 
   const handleDialogCancel = () => {
-    setPendingAction(null);
-  };
+    setPendingAction(null)
+  }
 
   const toCanvasCoordinates = useCallback(
     (localX: number, localY: number) => {
       return {
         x: (localX - viewport.x) / viewport.scale,
         y: (localY - viewport.y) / viewport.scale,
-      };
+      }
     },
-    [viewport],
-  );
+    [viewport]
+  )
 
   const {
     activePointerConnections,
@@ -150,7 +150,7 @@ function Canvas() {
     svgRef: ref,
     setConnections,
     toCanvasCoordinates,
-  });
+  })
 
   const { exportAsPng, exportAsJpg, exportAsPdf } = useExport({
     svgRef: ref,
@@ -158,46 +158,46 @@ function Canvas() {
     concepts,
     connections,
     getEndpointCenter,
-  });
+  })
 
   const [caretPositions, setCaretPositions] = useState<Record<number, number>>(
-    {},
-  );
+    {}
+  )
 
   const keyboardInstances = useRef<
     Record<number, { setCaretPosition: (pos: number) => void }>
-  >({});
+  >({})
 
   const handleCaretChange = useCallback((id: number, position: number) => {
-    setCaretPositions((prev) => ({ ...prev, [id]: position }));
-  }, []);
+    setCaretPositions((prev) => ({ ...prev, [id]: position }))
+  }, [])
 
   const handleKeyboardReady = useCallback(
     (id: number, keyboard: { setCaretPosition: (pos: number) => void }) => {
-      keyboardInstances.current[id] = keyboard;
+      keyboardInstances.current[id] = keyboard
     },
-    [],
-  );
+    []
+  )
 
   const handleCaretClick = useCallback((id: number, position: number) => {
-    setCaretPositions((prev) => ({ ...prev, [id]: position }));
-    const keyboard = keyboardInstances.current[id];
+    setCaretPositions((prev) => ({ ...prev, [id]: position }))
+    const keyboard = keyboardInstances.current[id]
     if (keyboard) {
-      keyboard.setCaretPosition(position);
+      keyboard.setCaretPosition(position)
     }
-  }, []);
+  }, [])
 
   const handleDoubleClick = (event: MouseEvent<SVGSVGElement>) => {
-    const svgElementPosition = event.currentTarget.getBoundingClientRect();
-    const localX = event.clientX - svgElementPosition.left;
-    const localY = event.clientY - svgElementPosition.top;
+    const svgElementPosition = event.currentTarget.getBoundingClientRect()
+    const localX = event.clientX - svgElementPosition.left
+    const localY = event.clientY - svgElementPosition.top
 
-    const { x, y } = toCanvasCoordinates(localX, localY);
-    clearSelection();
+    const { x, y } = toCanvasCoordinates(localX, localY)
+    clearSelection()
     addConcept(x, y, (newId) => {
-      startEditingConcept(newId);
-    });
-  };
+      startEditingConcept(newId)
+    })
+  }
 
   return (
     <div className="bg-background h-screen w-screen touch-none">
@@ -228,8 +228,8 @@ function Canvas() {
 
       <div className="pointer-events-none absolute inset-0">
         {selectedConceptIds.map((id) => {
-          const concept = concepts.find((c) => c.id === id);
-          if (!concept) return null;
+          const concept = concepts.find((c) => c.id === id)
+          if (!concept) return null
 
           return (
             <div key={`menu-${id}`} className="pointer-events-auto">
@@ -243,25 +243,25 @@ function Canvas() {
                 onTextColorEditing={editConceptTextColor}
               />
             </div>
-          );
+          )
         })}
       </div>
 
       <div className="pointer-events-none absolute inset-0">
         {selectedConnectionIds.map((id) => {
-          const connection = connections.find((c) => c.id === id);
-          if (!connection) return null;
+          const connection = connections.find((c) => c.id === id)
+          if (!connection) return null
           const connFrom = getEndpointCenter(
             connection.from,
-            connection.fromType,
-          );
-          const connTo = getEndpointCenter(connection.to, connection.toType);
-          const mx = (connFrom.x + connTo.x) / 2;
-          const my = (connFrom.y + connTo.y) / 2;
-          const connRectWidth = parseFloat(connection.width) + 44;
+            connection.fromType
+          )
+          const connTo = getEndpointCenter(connection.to, connection.toType)
+          const mx = (connFrom.x + connTo.x) / 2
+          const my = (connFrom.y + connTo.y) / 2
+          const connRectWidth = parseFloat(connection.width) + 44
           const menuScreenX =
-            (mx + connRectWidth / 2) * viewport.scale + viewport.x + 6;
-          const menuScreenY = (my - 17) * viewport.scale + viewport.y;
+            (mx + connRectWidth / 2) * viewport.scale + viewport.x + 6
+          const menuScreenY = (my - 17) * viewport.scale + viewport.y
 
           return (
             <div key={`conn-menu-${id}`} className="pointer-events-auto">
@@ -271,26 +271,26 @@ function Canvas() {
                 screenY={menuScreenY}
                 onDeselect={deselectConnection}
                 onDelete={(connId) => {
-                  deselectConnection(connId);
-                  deleteConnection(connId);
+                  deselectConnection(connId)
+                  deleteConnection(connId)
                 }}
                 onRename={renameConnection}
               />
             </div>
-          );
+          )
         })}
       </div>
 
       <div className="pointer-events-none absolute inset-0">
         {editingConceptIds.map((id) => {
-          const concept = concepts.find((c) => c.id === id);
-          if (!concept) return null;
-          const screenX = concept.x * viewport.scale + viewport.x;
+          const concept = concepts.find((c) => c.id === id)
+          if (!concept) return null
+          const screenX = concept.x * viewport.scale + viewport.x
           const screenY =
             concept.y * viewport.scale +
             viewport.y +
             parseFloat(concept.height) * viewport.scale +
-            10;
+            10
           return (
             <div
               key={`keyboard-${id}`}
@@ -311,20 +311,20 @@ function Canvas() {
               <Button
                 variant="default"
                 className="mt-2 gap-2"
-                onClick={() => handleOnEnter(concept.id, "concept")}
+                onClick={() => handleOnEnter(concept.id, 'concept')}
               >
                 <Check className="h-4 w-4" />
                 Speichern
               </Button>
             </div>
-          );
+          )
         })}
       </div>
 
       <div className="pointer-events-none absolute inset-0">
         {colorEditingStates.map(({ id, target }) => {
-          const concept = concepts.find((c) => c.id === id);
-          if (!concept) return null;
+          const concept = concepts.find((c) => c.id === id)
+          if (!concept) return null
           return (
             <div key={`sketch-${id}-${target}`} className="pointer-events-auto">
               <div className="sketch-no-inputs">
@@ -337,24 +337,23 @@ function Canvas() {
                 />
               </div>
             </div>
-          );
+          )
         })}
       </div>
 
       <div className="pointer-events-none absolute inset-0">
         {editingConnectionIds.map((id) => {
-          const connection = connections.find((c) => c.id === id);
-          if (!connection) return null;
-          const from = getEndpointCenter(connection.from, connection.fromType);
-          const to = getEndpointCenter(connection.to, connection.toType);
-          const mx = (from.x + to.x) / 2;
-          const my = (from.y + to.y) / 2;
-          const connRectWidth = parseFloat(connection.width) + 44;
-          const connRectHeight = 34;
-          const screenX =
-            (mx - connRectWidth / 2) * viewport.scale + viewport.x;
+          const connection = connections.find((c) => c.id === id)
+          if (!connection) return null
+          const from = getEndpointCenter(connection.from, connection.fromType)
+          const to = getEndpointCenter(connection.to, connection.toType)
+          const mx = (from.x + to.x) / 2
+          const my = (from.y + to.y) / 2
+          const connRectWidth = parseFloat(connection.width) + 44
+          const connRectHeight = 34
+          const screenX = (mx - connRectWidth / 2) * viewport.scale + viewport.x
           const screenY =
-            (my + connRectHeight / 2) * viewport.scale + viewport.y + 5;
+            (my + connRectHeight / 2) * viewport.scale + viewport.y + 5
           return (
             <div
               key={`keyboard-con-${id}`}
@@ -375,13 +374,13 @@ function Canvas() {
               <Button
                 variant="default"
                 className="mt-1 gap-2"
-                onClick={() => handleOnEnter(connection.id, "connection")}
+                onClick={() => handleOnEnter(connection.id, 'connection')}
               >
                 <Check className="h-4 w-4" />
                 Speichern
               </Button>
             </div>
-          );
+          )
         })}
       </div>
 
@@ -415,8 +414,8 @@ function Canvas() {
             <g
               key={connection.id}
               onClick={() => {
-                if (isDrawingRef.current) return;
-                toggleConnectionSelection(connection.id);
+                if (isDrawingRef.current) return
+                toggleConnectionSelection(connection.id)
               }}
               onDoubleClick={(e) => e.stopPropagation()}
             >
@@ -434,10 +433,10 @@ function Canvas() {
                 }
                 onCaretClick={handleCaretClick}
                 onStartConnection={(connId, e) =>
-                  handleStartConnection(connId, e, "connection")
+                  handleStartConnection(connId, e, 'connection')
                 }
                 extraTargetPositions={(connection.extraTargets ?? []).map(
-                  (targetId) => getConceptCenter(targetId),
+                  (targetId) => getConceptCenter(targetId)
                 )}
                 isSelected={selectedConnectionIds.includes(connection.id)}
                 hideConnectionPoints={hideConnectionPoints}
@@ -484,8 +483,8 @@ function Canvas() {
                   y2={pending.currentY}
                   className="stroke-card-foreground pointer-events-none stroke-1"
                 />
-              );
-            },
+              )
+            }
           )}
         </g>
       </svg>
@@ -512,7 +511,7 @@ function Canvas() {
         onChange={handleFileInputChange}
       />
     </div>
-  );
+  )
 }
 
-export default Canvas;
+export default Canvas

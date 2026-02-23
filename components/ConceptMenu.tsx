@@ -1,16 +1,16 @@
-"use client";
+'use client'
 
-import { Palette, Pencil, Trash2, X } from "lucide-react";
-import { Button } from "./ui/button";
+import { Palette, Pencil, Trash2, X } from 'lucide-react'
+import { Button } from './ui/button'
 
 interface ConceptMenuProps {
-  concept: any;
-  viewport: { x: number; y: number; scale: number };
-  onDeselect: (id: number) => void;
-  onDelete: (id: number) => void;
-  onRename: (id: number) => void;
-  onBackgroundColorEditing: (id: number) => void;
-  onTextColorEditing: (id: number) => void;
+  concept: any
+  viewport: { x: number; y: number; scale: number }
+  onDeselect: (id: number) => void
+  onDelete: (id: number) => void
+  onRename: (id: number) => void
+  onBackgroundColorEditing: (id: number) => void
+  onTextColorEditing: (id: number) => void
 }
 
 function ConceptMenu({
@@ -22,10 +22,10 @@ function ConceptMenu({
   onBackgroundColorEditing,
   onTextColorEditing,
 }: ConceptMenuProps) {
-  const screenX = concept.x * viewport.scale + viewport.x;
-  const screenY = concept.y * viewport.scale + viewport.y;
+  const screenX = concept.x * viewport.scale + viewport.x
+  const screenY = concept.y * viewport.scale + viewport.y
 
-  const conceptWidth = parseFloat(concept.width) * viewport.scale;
+  const conceptWidth = parseFloat(concept.width) * viewport.scale
 
   return (
     <div
@@ -78,7 +78,7 @@ function ConceptMenu({
         </Button>
       </div>
     </div>
-  );
+  )
 }
 
-export default ConceptMenu;
+export default ConceptMenu

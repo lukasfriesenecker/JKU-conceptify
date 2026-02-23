@@ -6,5 +6,5 @@ export interface IConcept {
   width: string
   height: string
   backgroundColor: string
-  textColor : string 
+  textColor: string
 }

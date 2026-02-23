@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import { useEffect, useRef } from 'react'
 import interact from 'interactjs'
@@ -13,13 +13,13 @@ function useScalable(
     height: string
   ) => void,
   isResizable: boolean,
-  scale: number 
+  scale: number
 ) {
   const ref = useRef<SVGRectElement | null>(null)
   const onScaleRef = useRef(onScale)
   onScaleRef.current = onScale
-  const scaleRef = useRef(scale)      
-  scaleRef.current = scale            
+  const scaleRef = useRef(scale)
+  scaleRef.current = scale
 
   useEffect(() => {
     if (!ref.current) return
@@ -36,7 +36,7 @@ function useScalable(
       ],
       listeners: {
         move(event) {
-          const s = scaleRef.current   
+          const s = scaleRef.current
           const target = event.target
 
           let x = parseFloat(target.getAttribute('x')) || 0

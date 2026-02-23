@@ -1,43 +1,43 @@
-"use client";
+'use client'
 
-import interact from "interactjs";
-import { useEffect, useRef } from "react";
+import interact from 'interactjs'
+import { useEffect, useRef } from 'react'
 
 function useDraggable(
   id: number,
   scale: number,
-  onDrag: (id: number, dx: number, dy: number) => void,
+  onDrag: (id: number, dx: number, dy: number) => void
 ) {
-  const ref = useRef<SVGGElement | null>(null);
+  const ref = useRef<SVGGElement | null>(null)
 
-  const scaleRef = useRef(scale);
-  scaleRef.current = scale;
+  const scaleRef = useRef(scale)
+  scaleRef.current = scale
 
-  const onDragRef = useRef(onDrag);
-  onDragRef.current = onDrag;
+  const onDragRef = useRef(onDrag)
+  onDragRef.current = onDrag
 
   useEffect(() => {
-    if (!ref.current) return;
+    if (!ref.current) return
 
     const interactable = interact(ref.current).draggable({
-      ignoreFrom: ".fill-ring",
+      ignoreFrom: '.fill-ring',
       listeners: {
         move(event) {
           onDragRef.current(
             id,
             event.dx / scaleRef.current,
-            event.dy / scaleRef.current,
-          );
+            event.dy / scaleRef.current
+          )
         },
       },
-    });
+    })
 
     return () => {
-      interactable.unset();
-    };
-  }, [id]);
+      interactable.unset()
+    }
+  }, [id])
 
-  return ref;
+  return ref
 }
 
-export default useDraggable;
+export default useDraggable

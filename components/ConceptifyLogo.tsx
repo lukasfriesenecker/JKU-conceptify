@@ -1,9 +1,9 @@
-import Link from "next/link";
+import Link from 'next/link'
 
 export function ConceptifyLogo() {
   return (
     <Link href="/">
-      <div className="bg-card absolute top-4 left-4 z-50 hidden h-[54px] items-center gap-3 rounded-sm border px-4 shadow-2xl xl:flex cursor-pointer transition-colors hover:bg-accent hover:text-accent-foreground">
+      <div className="bg-card hover:bg-accent hover:text-accent-foreground absolute top-4 left-4 z-50 hidden h-[54px] cursor-pointer items-center gap-3 rounded-sm border px-4 shadow-2xl transition-colors xl:flex">
         <svg
           className="h-7 w-7"
           viewBox="0 0 800 800"
@@ -51,5 +51,5 @@ export function ConceptifyLogo() {
         </div>
       </div>
     </Link>
-  );
+  )
 }

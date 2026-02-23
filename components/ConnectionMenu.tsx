@@ -1,15 +1,15 @@
-"use client";
+'use client'
 
-import { Pencil, Trash2, X } from "lucide-react";
-import { Button } from "./ui/button";
+import { Pencil, Trash2, X } from 'lucide-react'
+import { Button } from './ui/button'
 
 interface ConnectionMenuProps {
-  screenX: number;
-  screenY: number;
-  connectionId: number;
-  onDeselect: (id: number) => void;
-  onDelete: (id: number) => void;
-  onRename: (id: number) => void;
+  screenX: number
+  screenY: number
+  connectionId: number
+  onDeselect: (id: number) => void
+  onDelete: (id: number) => void
+  onRename: (id: number) => void
 }
 
 function ConnectionMenu({
@@ -55,7 +55,7 @@ function ConnectionMenu({
         </Button>
       </div>
     </div>
-  );
+  )
 }
 
-export default ConnectionMenu;
+export default ConnectionMenu

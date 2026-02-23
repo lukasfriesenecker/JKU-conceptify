@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import {
   Cloud,
@@ -12,9 +12,9 @@ import {
   Save,
   SlidersVertical,
   Sun,
-} from "lucide-react";
-import Keyboard from "react-simple-keyboard";
-import "react-simple-keyboard/build/css/index.css";
+} from 'lucide-react'
+import Keyboard from 'react-simple-keyboard'
+import 'react-simple-keyboard/build/css/index.css'
 import {
   Menubar,
   MenubarContent,
@@ -24,48 +24,48 @@ import {
   MenubarSubContent,
   MenubarSubTrigger,
   MenubarTrigger,
-} from "@/components/ui/menubar";
-import { Separator } from "@/components/ui/separator";
+} from '@/components/ui/menubar'
+import { Separator } from '@/components/ui/separator'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useTheme } from "./ThemeProvider";
+} from '@/components/ui/popover'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
+import { useTheme } from './ThemeProvider'
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { useState, useRef, useEffect } from "react";
+} from '@/components/ui/accordion'
+import { useState, useRef, useEffect } from 'react'
 
 interface ToolbarProps {
-  title: string;
-  description: string;
-  onSave: () => void;
-  onSaveAs: () => void;
-  onSaveProjectInfo: (title: string, desc: string) => void;
-  onOpen: () => void;
-  onNewProject: () => void;
-  onDownload: () => void;
-  onSaveOnline: () => void;
-  isSaveDisabled: boolean;
-  supportsFileSystemAccess: boolean;
-  zoomLevel: number;
-  onResetZoom: () => void;
-  panZoomLocked: boolean;
-  onPanZoomLockedChange: (locked: boolean) => void;
-  onExportPng: () => void;
-  onExportJpg: () => void;
-  onExportPdf: () => void;
-  hideConnectionPoints: boolean;
-  onHideConnectionPointsChange: (hidden: boolean) => void;
+  title: string
+  description: string
+  onSave: () => void
+  onSaveAs: () => void
+  onSaveProjectInfo: (title: string, desc: string) => void
+  onOpen: () => void
+  onNewProject: () => void
+  onDownload: () => void
+  onSaveOnline: () => void
+  isSaveDisabled: boolean
+  supportsFileSystemAccess: boolean
+  zoomLevel: number
+  onResetZoom: () => void
+  panZoomLocked: boolean
+  onPanZoomLockedChange: (locked: boolean) => void
+  onExportPng: () => void
+  onExportJpg: () => void
+  onExportPdf: () => void
+  hideConnectionPoints: boolean
+  onHideConnectionPointsChange: (hidden: boolean) => void
 }
 
 function Toolbar({
@@ -90,48 +90,48 @@ function Toolbar({
   hideConnectionPoints,
   onHideConnectionPointsChange,
 }: ToolbarProps) {
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    setMounted(true)
+  }, [])
 
-  const { theme, setTheme } = useTheme();
-  const [title, setTitle] = useState(initialTitle);
-  const [description, setDescription] = useState(initialDescription);
-  const [popoverOpen, setPopoverOpen] = useState(false);
+  const { theme, setTheme } = useTheme()
+  const [title, setTitle] = useState(initialTitle)
+  const [description, setDescription] = useState(initialDescription)
+  const [popoverOpen, setPopoverOpen] = useState(false)
   const [activeInput, setActiveInput] = useState<
-    "title" | "description" | null
-  >(null);
+    'title' | 'description' | null
+  >(null)
 
-  const keyboard = useRef<any>(null);
-  const titleInputRef = useRef<HTMLInputElement>(null);
-  const descriptionInputRef = useRef<HTMLTextAreaElement>(null);
+  const keyboard = useRef<any>(null)
+  const titleInputRef = useRef<HTMLInputElement>(null)
+  const descriptionInputRef = useRef<HTMLTextAreaElement>(null)
   const keyboardTheme =
-    theme === "dark" ? "hg-theme-default dark" : "hg-theme-default light";
+    theme === 'dark' ? 'hg-theme-default dark' : 'hg-theme-default light'
 
   const handleKeyboardChange = (input: string) => {
-    if (activeInput === "title") {
-      setTitle(input);
-    } else if (activeInput === "description") {
-      setDescription(input);
+    if (activeInput === 'title') {
+      setTitle(input)
+    } else if (activeInput === 'description') {
+      setDescription(input)
     }
-  };
-  const handleInputFocus = (inputName: "title" | "description") => {
-    setActiveInput(inputName);
+  }
+  const handleInputFocus = (inputName: 'title' | 'description') => {
+    setActiveInput(inputName)
     setTimeout(() => {
       titleInputRef.current?.setSelectionRange(
         titleInputRef.current.value.length,
-        titleInputRef.current.value.length,
-      );
-    }, 1);
+        titleInputRef.current.value.length
+      )
+    }, 1)
     if (keyboard.current) {
-      const currentValue = inputName === "title" ? title : description;
-      keyboard.current.setInput(currentValue);
+      const currentValue = inputName === 'title' ? title : description
+      keyboard.current.setInput(currentValue)
     }
-  };
+  }
 
-  const isFileSystemSupported = mounted && supportsFileSystemAccess;
+  const isFileSystemSupported = mounted && supportsFileSystemAccess
 
   return (
     <div className="bg-card absolute left-1/2 flex w-full -translate-x-1/2 justify-between border p-2 shadow-2xl md:rounded-sm lg:top-4 lg:w-2xl 2xl:w-3xl">
@@ -224,20 +224,20 @@ function Toolbar({
           open={popoverOpen}
           onOpenChange={(open) => {
             if (!open) {
-              setTitle(initialTitle);
-              setDescription(initialDescription);
-              setActiveInput(null);
+              setTitle(initialTitle)
+              setDescription(initialDescription)
+              setActiveInput(null)
             }
-            setPopoverOpen(open);
+            setPopoverOpen(open)
           }}
         >
           <PopoverTrigger asChild>
             <Button variant="ghost">
-              {title.length > 20 ? title.slice(0, 20) + "…" : title}
+              {title.length > 20 ? title.slice(0, 20) + '…' : title}
               <Separator orientation="vertical" className="hidden 2xl:flex" />
               <span className="hidden 2xl:inline">
                 {description.length > 40
-                  ? description.slice(0, 40) + "…"
+                  ? description.slice(0, 40) + '…'
                   : description}
               </span>
             </Button>
@@ -253,7 +253,7 @@ function Toolbar({
                 placeholder="Titel"
                 value={title}
                 onChange={(e) => handleKeyboardChange(e.target.value)}
-                onFocus={() => handleInputFocus("title")}
+                onFocus={() => handleInputFocus('title')}
               />
             </div>
             <div className="grid w-full gap-3">
@@ -264,7 +264,7 @@ function Toolbar({
                 placeholder="Beschreibung"
                 value={description}
                 onChange={(e) => handleKeyboardChange(e.target.value)}
-                onFocus={() => handleInputFocus("description")}
+                onFocus={() => handleInputFocus('description')}
               />
             </div>
             {mounted && (
@@ -273,20 +273,20 @@ function Toolbar({
                 onChange={handleKeyboardChange}
                 theme={keyboardTheme}
                 display={{
-                  "{bksp}": "⌫",
-                  "{enter}": "↵",
-                  "{shift}": "⇧",
-                  "{space}": "␣",
+                  '{bksp}': '⌫',
+                  '{enter}': '↵',
+                  '{shift}': '⇧',
+                  '{space}': '␣',
                 }}
               />
             )}
             <div className="flex flex-col justify-end gap-4 md:flex-row md:gap-2">
               <Button
                 onClick={() => {
-                  setTitle(initialTitle);
-                  setDescription(initialDescription);
-                  setActiveInput(null);
-                  setPopoverOpen(false);
+                  setTitle(initialTitle)
+                  setDescription(initialDescription)
+                  setActiveInput(null)
+                  setPopoverOpen(false)
                 }}
                 variant="secondary"
               >
@@ -295,9 +295,9 @@ function Toolbar({
               <Button
                 disabled={!title.trim() || !description.trim()}
                 onClick={() => {
-                  onSaveProjectInfo(title, description);
-                  setActiveInput(null);
-                  setPopoverOpen(false);
+                  onSaveProjectInfo(title, description)
+                  setActiveInput(null)
+                  setPopoverOpen(false)
                 }}
               >
                 Speichern
@@ -321,10 +321,10 @@ function Toolbar({
           size="icon"
           className="hidden md:flex"
           onClick={() => {
-            if (theme === "light") {
-              setTheme("dark");
+            if (theme === 'light') {
+              setTheme('dark')
             } else {
-              setTheme("light");
+              setTheme('light')
             }
           }}
         >
@@ -372,10 +372,10 @@ function Toolbar({
                 size="icon"
                 className="flex md:hidden"
                 onClick={() => {
-                  if (theme === "light") {
-                    setTheme("dark");
+                  if (theme === 'light') {
+                    setTheme('dark')
                   } else {
-                    setTheme("light");
+                    setTheme('light')
                   }
                 }}
               >
@@ -387,7 +387,7 @@ function Toolbar({
         </Popover>
       </div>
     </div>
-  );
+  )
 }
 
-export default Toolbar;
+export default Toolbar
