@@ -324,7 +324,7 @@ function Canvas() {
               <Button
                 variant="default"
                 className="mt-2 gap-2"
-                disabled={!concept.label}
+                disabled={!concept.label || concept.label.length > 200}
                 onClick={() => {
                   handleOnEnter(concept.id, 'concept');
                 }}
@@ -390,7 +390,7 @@ function Canvas() {
               <Button
                 variant="default"
                 className="mt-1 gap-2"
-                disabled={!connection.label}
+                disabled={!connection.label || connection.label.length > 200}
                 onClick={() => handleOnEnter(connection.id, 'connection')}
               >
                 <Check className="h-4 w-4" />
