@@ -16,7 +16,7 @@ interface UseFileOperationsProps {
   setConcepts: React.Dispatch<React.SetStateAction<IConcept[]>>
   setConnections: React.Dispatch<React.SetStateAction<IConnection[]>>
   clearSelection: () => void
-  getThumbnail?: () => Promise<string | null>
+  getThumbnail?: () => Promise<{ light: string | null; dark: string | null } | null>
 }
 
 function useFileOperations({
@@ -165,11 +165,12 @@ function useFileOperations({
   const handleSaveOnline = async (): Promise<boolean> => {
     try {
       const projectData = getProjectData()
-      const thumbnail = getThumbnail ? await getThumbnail() : null
+      const thumbnails = getThumbnail ? await getThumbnail() : null
 
       const payload = {
         id: cloudProjectId,
-        thumbnail,
+        thumbnailLight: thumbnails?.light ?? null,
+        thumbnailDark: thumbnails?.dark ?? null,
         ...projectData,
       }
 

@@ -101,8 +101,15 @@ function Concept({
 
     setMinDims({ width: textWidth, height: textHeight })
 
-    onLabelChange(id, `${textWidth}px`, 'concept', `${textHeight}px`)
-  }, [label, id, onLabelChange, hideConnectionPoints])
+    const parsedWidth = parseFloat(width) || 100
+    const parsedHeight = parseFloat(height) || 50
+    const newWidth = Math.max(textWidth, parsedWidth)
+    const newHeight = Math.max(textHeight, parsedHeight)
+
+    if (newWidth > parsedWidth || newHeight > parsedHeight) {
+      onLabelChange(id, `${newWidth}px`, 'concept', `${newHeight}px`)
+    }
+  }, [label, id, onLabelChange, hideConnectionPoints, width, height])
 
   useLayoutEffect(() => {
     if (caretPosition === undefined || caretPosition === null) {

@@ -17,11 +17,14 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 
+import { useTheme } from '@/components/ThemeProvider'
+
 interface Project {
   id: string
   title: string
   description: string
-  thumbnail?: string
+  thumbnailLight?: string
+  thumbnailDark?: string
   updatedAt: string
 }
 
@@ -34,6 +37,24 @@ function ProjectsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null)
+  
+  const { theme } = useTheme()
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light')
+
+  useEffect(() => {
+    if (theme === 'system') {
+      const match = window.matchMedia('(prefers-color-scheme: dark)')
+      setResolvedTheme(match.matches ? 'dark' : 'light')
+      
+      const listener = (e: MediaQueryListEvent) => {
+        setResolvedTheme(e.matches ? 'dark' : 'light')
+      }
+      match.addEventListener('change', listener)
+      return () => match.removeEventListener('change', listener)
+    } else {
+      setResolvedTheme(theme as 'light' | 'dark')
+    }
+  }, [theme])
 
   useEffect(() => {
     async function fetchProjects() {
@@ -159,7 +180,11 @@ function ProjectsPage() {
                   key={project.id}
                   title={project.title}
                   description={project.description}
-                  thumbnail={project.thumbnail}
+                  thumbnail={
+                    resolvedTheme === 'dark'
+                      ? project.thumbnailDark
+                      : project.thumbnailLight
+                  }
                   onClick={() => handleOpenProject(project.id)}
                   onDelete={(e) => {
                     e.stopPropagation()

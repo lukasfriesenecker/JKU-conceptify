@@ -23,7 +23,7 @@ function useExport({
   connections,
   getEndpointCenter,
 }: UseExportProps) {
-  const buildExportSvg = useCallback(() => {
+  const buildExportSvg = useCallback((options?: { targetAspectRatio?: number; paddingRatio?: number }) => {
     const svgElement = svgRef.current
     if (!svgElement) return null
 
@@ -70,8 +70,38 @@ function useExport({
     maxX += padding
     maxY += padding
 
-    const width = maxX - minX
-    const height = maxY - minY
+    let width = maxX - minX
+    let height = maxY - minY
+
+    if (options?.targetAspectRatio) {
+      const currentAspectRatio = width / height
+      if (currentAspectRatio > options.targetAspectRatio) {
+        const newHeight = width / options.targetAspectRatio
+        const diff = newHeight - height
+        minY -= diff / 2
+        maxY += diff / 2
+        height = newHeight
+      } else {
+        const newWidth = height * options.targetAspectRatio
+        const diff = newWidth - width
+        minX -= diff / 2
+        maxX += diff / 2
+        width = newWidth
+      }
+    }
+
+    if (options?.paddingRatio) {
+      const newWidth = width * options.paddingRatio
+      const newHeight = height * options.paddingRatio
+      const diffX = newWidth - width
+      const diffY = newHeight - height
+      minX -= diffX / 2
+      maxX += diffX / 2
+      minY -= diffY / 2
+      maxY += diffY / 2
+      width = newWidth
+      height = newHeight
+    }
 
     const clonedGroup = contentGroup.cloneNode(true) as SVGGElement
     clonedGroup.setAttribute('transform', `translate(${-minX}, ${-minY})`)
@@ -93,15 +123,18 @@ function useExport({
       }
     }
 
-    const bodyStyles = getComputedStyle(document.body)
-    const bgColor = bodyStyles.getPropertyValue('background-color') || 'white'
+    const getThemeColors = () => {
+      const el = document.createElement('div')
+      el.className = 'bg-background text-muted-foreground fixed opacity-0 pointer-events-none -z-50'
+      document.body.appendChild(el)
+      const computed = getComputedStyle(el)
+      const bg = computed.backgroundColor
+      const fg = computed.color
+      document.body.removeChild(el)
+      return { bg, fg }
+    }
 
-    const dotElement = svgElement.querySelector(
-      'pattern circle'
-    ) as SVGElement | null
-    const dotColor = dotElement
-      ? getComputedStyle(dotElement).getPropertyValue('fill')
-      : 'gray'
+    const { bg: bgColor, fg: dotColor } = getThemeColors()
 
     const styleProps = [
       'fill',
@@ -113,6 +146,7 @@ function useExport({
       'text-anchor',
       'dominant-baseline',
       'opacity',
+      'color',
     ]
 
     for (let i = 0; i < originalElements.length; i++) {
@@ -201,8 +235,8 @@ function useExport({
       'http://www.w3.org/2000/svg',
       'rect'
     )
-    bgRect.setAttribute('width', `${width}`)
-    bgRect.setAttribute('height', `${height}`)
+    bgRect.setAttribute('width', '100%')
+    bgRect.setAttribute('height', '100%')
     bgRect.style.fill = bgColor
     exportSvg.appendChild(bgRect)
 
@@ -225,8 +259,8 @@ function useExport({
     exportSvg.appendChild(defs)
 
     const dotBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-    dotBg.setAttribute('width', `${width}`)
-    dotBg.setAttribute('height', `${height}`)
+    dotBg.setAttribute('width', '100%')
+    dotBg.setAttribute('height', '100%')
     dotBg.setAttribute('fill', 'url(#export-dot-pattern)')
     exportSvg.appendChild(dotBg)
 
@@ -285,74 +319,81 @@ function useExport({
     [buildExportSvg, title]
   )
 
-  const generateThumbnailBase64 = useCallback(async (): Promise<string | null> => {
-    return new Promise((resolve) => {
-      const result = buildExportSvg()
-      if (!result) {
-        resolve(null)
-        return
-      }
-
-      const { exportSvg, width, height } = result
-
-      const svgString = new XMLSerializer().serializeToString(exportSvg)
-      const blob = new Blob([svgString], {
-        type: 'image/svg+xml;charset=utf-8',
-      })
-      const url = URL.createObjectURL(blob)
-
-      const scale = 0.5
-
-      const targetAspectRatio = 16 / 9
-      const currentAspectRatio = width / height
-
-      let finalWidth = width
-      let finalHeight = height
-
-      if (currentAspectRatio > targetAspectRatio) {
-        finalHeight = width / targetAspectRatio
-      } else {
-        finalWidth = height * targetAspectRatio
-      }
-
-      const paddingRatio = 1.15
-      finalWidth *= paddingRatio
-      finalHeight *= paddingRatio
-
-      const offsetX = (finalWidth - width) / 2
-      const offsetY = (finalHeight - height) / 2
-
-      const canvas = document.createElement('canvas')
-      canvas.width = finalWidth * scale
-      canvas.height = finalHeight * scale
-      const context = canvas.getContext('2d')
-
-      if (!context) {
-        resolve(null)
-        return
-      }
-
-      const bodyStyles = getComputedStyle(document.body)
-      const bgColor = bodyStyles.getPropertyValue('background-color') || 'white'
-      context.fillStyle = bgColor
-      context.fillRect(0, 0, canvas.width, canvas.height)
-
-      const img = new Image()
-      img.onload = () => {
-        context.scale(scale, scale)
-        context.drawImage(img, offsetX, offsetY, width, height)
-        URL.revokeObjectURL(url)
-
-        const base64 = canvas.toDataURL('image/jpeg', 0.6)
-        resolve(base64)
-      }
+  const generateThumbnailBase64 = useCallback(async (): Promise<{ light: string | null; dark: string | null }> => {
+    return new Promise(async (resolve) => {
+      const root = window.document.documentElement
+      const originalClasses = Array.from(root.classList)
       
-      img.onerror = () => {
-        URL.revokeObjectURL(url)
-        resolve(null)
+      const captureTheme = async (themeName: 'light' | 'dark'): Promise<string | null> => {
+        return new Promise((resolveCapture) => {
+          root.classList.remove('light', 'dark')
+          root.classList.add(themeName)
+
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              const result = buildExportSvg({ targetAspectRatio: 16 / 9, paddingRatio: 1.15 })
+              if (!result) {
+                resolveCapture(null)
+                return
+              }
+
+              const { exportSvg, width, height } = result
+
+              const svgString = new XMLSerializer().serializeToString(exportSvg)
+              const blob = new Blob([svgString], {
+                type: 'image/svg+xml;charset=utf-8',
+              })
+              const url = URL.createObjectURL(blob)
+
+              const scale = 0.5
+
+              const canvas = document.createElement('canvas')
+              canvas.width = width * scale
+              canvas.height = height * scale
+              const context = canvas.getContext('2d')
+
+              if (!context) {
+                resolveCapture(null)
+                return
+              }
+
+              const bgColor = getComputedStyle(document.body).backgroundColor || 'white'
+
+              context.fillStyle = bgColor
+              context.fillRect(0, 0, canvas.width, canvas.height)
+
+              const img = new Image()
+              img.onload = () => {
+                context.scale(scale, scale)
+                context.drawImage(img, 0, 0, width, height)
+                URL.revokeObjectURL(url)
+
+                const base64 = canvas.toDataURL('image/jpeg', 0.95)
+                resolveCapture(base64)
+              }
+              
+              img.onerror = () => {
+                URL.revokeObjectURL(url)
+                resolveCapture(null)
+              }
+
+              img.src = url
+            })
+          })
+        })
       }
 
-      img.src = url
+      const noTransitionStyle = document.createElement('style')
+      noTransitionStyle.innerHTML = '* { transition: none !important; }'
+      document.head.appendChild(noTransitionStyle)
+
+      const light = await captureTheme('light')
+      const dark = await captureTheme('dark')
+
+      document.head.removeChild(noTransitionStyle)
+      root.className = originalClasses.join(' ')
+
+      resolve({ light, dark })
     })
   }, [buildExportSvg])
 

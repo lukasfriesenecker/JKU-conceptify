@@ -16,7 +16,7 @@ export async function POST(req: Request) {
 
     const userId = session.user.id
     const body = await req.json()
-    const { id, title, description, concepts, connections, thumbnail } = body
+    const { id, title, description, concepts, connections, thumbnailLight, thumbnailDark } = body
 
     const client = await clientPromise
     const db = client.db()
@@ -33,7 +33,8 @@ export async function POST(req: Request) {
             description,
             concepts,
             connections,
-            thumbnail,
+            thumbnailLight,
+            thumbnailDark,
             updatedAt: now,
           },
         }
@@ -51,7 +52,8 @@ export async function POST(req: Request) {
         description,
         concepts,
         connections,
-        thumbnail,
+        thumbnailLight,
+        thumbnailDark,
         createdAt: now,
         updatedAt: now,
       })
@@ -109,7 +111,7 @@ export async function GET(req: Request) {
 
     const projects = await collection
       .find({ userId })
-      .project({ _id: 1, title: 1, description: 1, thumbnail: 1, updatedAt: 1 })
+      .project({ _id: 1, title: 1, description: 1, thumbnailLight: 1, thumbnailDark: 1, updatedAt: 1 })
       .sort({ updatedAt: -1 })
       .toArray()
 
@@ -117,7 +119,8 @@ export async function GET(req: Request) {
       id: p._id.toString(),
       title: p.title,
       description: p.description,
-      thumbnail: p.thumbnail,
+      thumbnailLight: p.thumbnailLight,
+      thumbnailDark: p.thumbnailDark,
       updatedAt: p.updatedAt,
     }))
 

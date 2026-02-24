@@ -18,12 +18,11 @@ interface ProjectCardProps {
 
 function ProjectCard({ title, description, thumbnail, onClick, onDelete }: ProjectCardProps) {
   return (
-    <Card className="relative mx-auto flex h-full w-full max-w-sm flex-col rounded-xs pt-0 group">
-      <div className="absolute inset-0 z-30 aspect-video bg-black/35" />
+    <Card className="relative mx-auto flex h-full w-full max-w-sm flex-col rounded-xs overflow-hidden pt-0 group border-border">
       <img
         src={thumbnail || "https://avatar.vercel.sh/shadcn1"}
-        alt="Event cover"
-        className="relative z-20 aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40 transition-all duration-300 group-hover:brightness-75 group-hover:grayscale-0"
+        alt="Project thumbnail"
+        className="relative z-20 aspect-video w-full object-cover border-b"
       />
       {onDelete && (
         <Button
