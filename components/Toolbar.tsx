@@ -352,10 +352,6 @@ function Toolbar({
                 <Label htmlFor="panZoomLock">Bewegungen sperren</Label>
               </div>
               <div className="flex items-center gap-3">
-                <Checkbox id="keyboard" />
-                <Label htmlFor="keyboard">Integrierte Tastatur anzeigen</Label>
-              </div>
-              <div className="flex items-center gap-3">
                 <Checkbox
                   id="edit"
                   checked={hideConnectionPoints}
@@ -365,6 +361,7 @@ function Toolbar({
                 />
                 <Label htmlFor="edit">Verbindungspunkte ausblenden</Label>
               </div>
+
               <h4 className="flex md:hidden">Anzeigemodus</h4>
 
               <Button

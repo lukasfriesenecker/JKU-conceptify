@@ -13,13 +13,31 @@ function useScalable(
     height: string
   ) => void,
   isResizable: boolean,
-  scale: number
+  scale: number,
+  minWidth: number = 100,
+  minHeight: number = 50,
+  onScaleStart?: (id: number) => void,
+  onScaleEnd?: (id: number) => void
 ) {
   const ref = useRef<SVGRectElement | null>(null)
+  
   const onScaleRef = useRef(onScale)
   onScaleRef.current = onScale
+  
+  const onScaleStartRef = useRef(onScaleStart)
+  onScaleStartRef.current = onScaleStart
+  
+  const onScaleEndRef = useRef(onScaleEnd)
+  onScaleEndRef.current = onScaleEnd
+  
   const scaleRef = useRef(scale)
   scaleRef.current = scale
+  
+  const minWidthRef = useRef(minWidth)
+  minWidthRef.current = minWidth
+  
+  const minHeightRef = useRef(minHeight)
+  minHeightRef.current = minHeight
 
   useEffect(() => {
     if (!ref.current) return
@@ -31,10 +49,18 @@ function useScalable(
       edges: { left: true, right: true, top: true, bottom: true },
       modifiers: [
         interact.modifiers.restrictSize({
-          min: { width: 100, height: 50 },
+          min: (() => {
+            return {
+              width: minWidthRef.current,
+              height: minHeightRef.current,
+            }
+          }) as any,
         }),
       ],
       listeners: {
+        start(event) {
+          onScaleStartRef.current?.(id)
+        },
         move(event) {
           const s = scaleRef.current
           const target = event.target
@@ -49,6 +75,9 @@ function useScalable(
           y += event.deltaRect.top / s
 
           onScaleRef.current(id, x, y, `${width}px`, `${height}px`)
+        },
+        end(event) {
+          onScaleEndRef.current?.(id)
         },
       },
     })

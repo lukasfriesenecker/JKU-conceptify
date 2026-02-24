@@ -242,6 +242,7 @@ function Connection({
           className="fill-card-foreground text-xs font-medium select-none"
           style={{ cursor: caretPosition !== undefined ? 'text' : undefined }}
           onClick={handleTextClick}
+          xmlSpace="preserve"
         >
           {label.split('\n').map((line, i) => (
             <tspan
@@ -252,7 +253,7 @@ function Connection({
               x={rectLeft + paddingLeft}
               dy={i === 0 ? 0 : '1.2em'}
             >
-              {line || '\u200B'}
+              {line || ' '}
             </tspan>
           ))}
         </text>

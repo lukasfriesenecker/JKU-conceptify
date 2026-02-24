@@ -111,6 +111,19 @@ function useConnectionDraw({
         )
       } else if (pending.fromId !== toId) {
         setConnections((prev) => {
+          const connectionExists = prev.some((c) => {
+            const isCFromConcept = !c.fromType || c.fromType === 'concept'
+            const isCToConcept = !c.toType || c.toType === 'concept'
+            if (!isCFromConcept || !isCToConcept) return false
+
+            return (
+              (c.from === pending.fromId && c.to === toId) ||
+              (c.from === toId && c.to === pending.fromId)
+            )
+          })
+
+          if (connectionExists) return prev
+
           const nextId =
             prev.length > 0 ? Math.max(...prev.map((c) => c.id)) + 1 : 0
           const newConnection: IConnection = {

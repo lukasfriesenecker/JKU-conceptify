@@ -95,6 +95,16 @@ function Canvas() {
     null
   )
 
+  const [interactingConceptId, setInteractingConceptId] = useState<number | null>(null)
+
+  const handleInteractionStart = useCallback((id: number) => {
+    setInteractingConceptId(id)
+  }, [])
+
+  const handleInteractionEnd = useCallback(() => {
+    setInteractingConceptId(null)
+  }, [])
+
   const guardedNewProject = () => {
     if (hasChanges) {
       setPendingAction('new')
@@ -229,6 +239,7 @@ function Canvas() {
 
       <div className="pointer-events-none absolute inset-0">
         {selectedConceptIds.map((id) => {
+          if (id === interactingConceptId) return null
           const concept = concepts.find((c) => c.id === id)
           if (!concept) return null
 
@@ -459,6 +470,10 @@ function Canvas() {
               textColor={concept.textColor}
               onDrag={handleConceptDrag}
               onScale={handleConceptScale}
+              onScaleStart={handleInteractionStart}
+              onScaleEnd={handleInteractionEnd}
+              onDragStart={handleInteractionStart}
+              onDragEnd={handleInteractionEnd}
               onSelect={toggleSelection}
               isSelected={selectedConceptIds.includes(concept.id)}
               onStartConnection={handleStartConnection}

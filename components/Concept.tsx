@@ -37,6 +37,10 @@ interface ConceptProps {
   caretPosition?: number
   onCaretClick?: (id: number, position: number) => void
   hideConnectionPoints?: boolean
+  onScaleStart?: (id: number) => void
+  onScaleEnd?: (id: number) => void
+  onDragStart?: (id: number) => void
+  onDragEnd?: (id: number) => void
 }
 
 function Concept({
@@ -58,9 +62,23 @@ function Concept({
   caretPosition,
   onCaretClick,
   hideConnectionPoints,
+  onScaleStart,
+  onScaleEnd,
+  onDragStart,
+  onDragEnd,
 }: ConceptProps) {
-  const dragRef = useDraggable(id, scale, onDrag)
-  const scaleRef = useScalable(id, onScale, isSelected, scale)
+  const [minDims, setMinDims] = useState({ width: 100, height: 50 })
+  const dragRef = useDraggable(id, scale, onDrag, onDragStart, onDragEnd)
+  const scaleRef = useScalable(
+    id,
+    onScale,
+    isSelected,
+    scale,
+    minDims.width,
+    minDims.height,
+    onScaleStart,
+    onScaleEnd
+  )
   const handleRadius = 6 / scale
   const pointerStartPos = useRef({ x: 0, y: 0 })
   const hasMoved = useRef(false)
@@ -77,7 +95,11 @@ function Concept({
     const bbox = textRef.current.getBBox()
     const padding = hideConnectionPoints ? 30 : 64
     const textWidth = bbox.width + padding
-    const textHeight = Math.max(54, bbox.height + 20)
+    const hasMultipleLines = label.includes('\n')
+    const extraHeight = hasMultipleLines ? 14 : 0
+    const textHeight = Math.max(54, bbox.height + 20 + extraHeight)
+
+    setMinDims({ width: textWidth, height: textHeight })
 
     onLabelChange(id, `${textWidth}px`, 'concept', `${textHeight}px`)
   }, [label, id, onLabelChange, hideConnectionPoints])
@@ -288,6 +310,7 @@ function Concept({
           cursor: caretPosition !== undefined ? 'text' : undefined,
         }}
         onClick={handleTextClick}
+        xmlSpace="preserve"
       >
         {label.split('\n').map((line, i) => (
           <tspan
@@ -298,7 +321,7 @@ function Concept({
             x={hideConnectionPoints ? 15 : 49}
             dy={i === 0 ? 0 : '1.2em'}
           >
-            {line || '\u200B'}
+            {line || ' '}
           </tspan>
         ))}
       </text>
