@@ -20,6 +20,7 @@ import useFileOperations from '@/hooks/useFileOperations'
 import useConnectionDraw from '@/hooks/useConnectionDraw'
 import useExport from '@/hooks/useExport'
 import AccountInfo from './AccountInfo'
+import NoConceptsDialog from './NoConceptsDialog'
 
 function Canvas() {
   const { ref, viewport, resetZoom, panZoomLocked, setPanZoomLocked } =
@@ -163,7 +164,7 @@ function Canvas() {
     toCanvasCoordinates,
   })
 
-  const { exportAsPng, exportAsJpg, exportAsPdf, generateThumbnailBase64 } = useExport({
+  const { exportAsPng, exportAsJpg, exportAsPdf, generateThumbnailBase64, noConceptsDialogOpen, setNoConceptsDialogOpen } = useExport({
     svgRef: ref,
     title,
     concepts,
@@ -521,6 +522,11 @@ function Canvas() {
         onOpenChange={setIsSaveMethodDialogOpen}
         onSaveOnline={handleSaveOnline}
         onSaveFile={handleSaveAs}
+      />
+
+      <NoConceptsDialog
+        open={noConceptsDialogOpen}
+        onOpenChange={setNoConceptsDialogOpen}
       />
 
       <input

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { jsPDF } from 'jspdf'
 import type { IConcept } from '@/types/Concept'
 import type { IConnection } from '@/types/Connection'
@@ -23,251 +23,271 @@ function useExport({
   connections,
   getEndpointCenter,
 }: UseExportProps) {
-  const buildExportSvg = useCallback((options?: { targetAspectRatio?: number; paddingRatio?: number }) => {
-    const svgElement = svgRef.current
-    if (!svgElement) return null
+  const [noConceptsDialogOpen, setNoConceptsDialogOpen] = useState(false)
 
-    const contentGroup = svgElement.querySelector(
-      'g[transform]'
-    ) as SVGGElement | null
-    if (!contentGroup) return null
+  const buildExportSvg = useCallback(
+    (options?: { targetAspectRatio?: number; paddingRatio?: number }) => {
+      const svgElement = svgRef.current
+      if (!svgElement) return null
 
-    const padding = 40
-    const offsetShift = 34
+      const contentGroup = svgElement.querySelector(
+        'g[transform]'
+      ) as SVGGElement | null
+      if (!contentGroup) return null
 
-    let minX = Infinity,
-      minY = Infinity,
-      maxX = -Infinity,
-      maxY = -Infinity
+      const padding = 40
+      const offsetShift = 34
 
-    for (const concept of concepts) {
-      const w = parseFloat(concept.width) - offsetShift
-      const h = parseFloat(concept.height)
+      let minX = Infinity,
+        minY = Infinity,
+        maxX = -Infinity,
+        maxY = -Infinity
 
-      minX = Math.min(minX, concept.x + offsetShift)
-      minY = Math.min(minY, concept.y)
-      maxX = Math.max(maxX, concept.x + w + offsetShift)
-      maxY = Math.max(maxY, concept.y + h)
-    }
+      for (const concept of concepts) {
+        const w = parseFloat(concept.width) - offsetShift
+        const h = parseFloat(concept.height)
 
-    for (const connection of connections) {
-      const from = getEndpointCenter(connection.from, connection.fromType)
-      const to = getEndpointCenter(connection.to, connection.toType)
-      const mx = (from.x + to.x) / 2
-      const my = (from.y + to.y) / 2
-      const labelWidth = parseFloat(connection.width) + 10
-
-      minX = Math.min(minX, from.x, to.x, mx - 45)
-      minY = Math.min(minY, from.y, to.y, my - 15)
-      maxX = Math.max(maxX, from.x, to.x, mx - 45 + labelWidth)
-      maxY = Math.max(maxY, from.y, to.y, my + 15)
-    }
-
-    if (!isFinite(minX)) return null
-
-    minX -= padding
-    minY -= padding
-    maxX += padding
-    maxY += padding
-
-    let width = maxX - minX
-    let height = maxY - minY
-
-    if (options?.targetAspectRatio) {
-      const currentAspectRatio = width / height
-      if (currentAspectRatio > options.targetAspectRatio) {
-        const newHeight = width / options.targetAspectRatio
-        const diff = newHeight - height
-        minY -= diff / 2
-        maxY += diff / 2
-        height = newHeight
-      } else {
-        const newWidth = height * options.targetAspectRatio
-        const diff = newWidth - width
-        minX -= diff / 2
-        maxX += diff / 2
-        width = newWidth
-      }
-    }
-
-    if (options?.paddingRatio) {
-      const newWidth = width * options.paddingRatio
-      const newHeight = height * options.paddingRatio
-      const diffX = newWidth - width
-      const diffY = newHeight - height
-      minX -= diffX / 2
-      maxX += diffX / 2
-      minY -= diffY / 2
-      maxY += diffY / 2
-      width = newWidth
-      height = newHeight
-    }
-
-    const clonedGroup = contentGroup.cloneNode(true) as SVGGElement
-    clonedGroup.setAttribute('transform', `translate(${-minX}, ${-minY})`)
-
-    const originalElements = contentGroup.querySelectorAll('*')
-    const clonedElements = clonedGroup.querySelectorAll('*')
-
-    const toRemove: Set<number> = new Set()
-    for (let i = 0; i < originalElements.length; i++) {
-      const original = originalElements[i] as SVGElement
-      if (
-        original.tagName === 'circle' &&
-        original.classList.contains('fill-ring')
-      ) {
-        toRemove.add(i)
-      }
-      if (original.classList.contains('cursor-blink')) {
-        toRemove.add(i)
-      }
-    }
-
-    const getThemeColors = () => {
-      const el = document.createElement('div')
-      el.className = 'bg-background text-muted-foreground fixed opacity-0 pointer-events-none -z-50'
-      document.body.appendChild(el)
-      const computed = getComputedStyle(el)
-      const bg = computed.backgroundColor
-      const fg = computed.color
-      document.body.removeChild(el)
-      return { bg, fg }
-    }
-
-    const { bg: bgColor, fg: dotColor } = getThemeColors()
-
-    const styleProps = [
-      'fill',
-      'stroke',
-      'stroke-width',
-      'font-size',
-      'font-family',
-      'font-weight',
-      'text-anchor',
-      'dominant-baseline',
-      'opacity',
-      'color',
-    ]
-
-    for (let i = 0; i < originalElements.length; i++) {
-      const original = originalElements[i] as SVGElement
-      const cloned = clonedElements[i] as SVGElement
-
-      if (toRemove.has(i)) {
-        cloned.remove()
-        continue
+        minX = Math.min(minX, concept.x + offsetShift)
+        minY = Math.min(minY, concept.y)
+        maxX = Math.max(maxX, concept.x + w + offsetShift)
+        maxY = Math.max(maxY, concept.y + h)
       }
 
-      if (
-        original.tagName === 'g' &&
-        original.hasAttribute('data-concept-id')
-      ) {
-        const x = parseFloat(
-          original.getAttribute('transform')?.split('(')[1].split(',')[0] || '0'
-        )
-        const y = parseFloat(
-          original.getAttribute('transform')?.split(',')[1].split(')')[0] || '0'
-        )
-        cloned.setAttribute('transform', `translate(${x + offsetShift}, ${y})`)
+      for (const connection of connections) {
+        const from = getEndpointCenter(connection.from, connection.fromType)
+        const to = getEndpointCenter(connection.to, connection.toType)
+        const mx = (from.x + to.x) / 2
+        const my = (from.y + to.y) / 2
+        const labelWidth = parseFloat(connection.width) + 10
+
+        minX = Math.min(minX, from.x, to.x, mx - 45)
+        minY = Math.min(minY, from.y, to.y, my - 15)
+        maxX = Math.max(maxX, from.x, to.x, mx - 45 + labelWidth)
+        maxY = Math.max(maxY, from.y, to.y, my + 15)
       }
 
-      if (
-        original.tagName === 'rect' &&
-        !original.classList.contains('fill-ring')
-      ) {
-        const origW = parseFloat(original.getAttribute('width') || '0')
-        if (origW > 50) {
-          cloned.setAttribute('width', String(origW - offsetShift))
+      if (!isFinite(minX)) return null
+
+      minX -= padding
+      minY -= padding
+      maxX += padding
+      maxY += padding
+
+      let width = maxX - minX
+      let height = maxY - minY
+
+      if (options?.targetAspectRatio) {
+        const currentAspectRatio = width / height
+        if (currentAspectRatio > options.targetAspectRatio) {
+          const newHeight = width / options.targetAspectRatio
+          const diff = newHeight - height
+          minY -= diff / 2
+          maxY += diff / 2
+          height = newHeight
+        } else {
+          const newWidth = height * options.targetAspectRatio
+          const diff = newWidth - width
+          minX -= diff / 2
+          maxX += diff / 2
+          width = newWidth
         }
       }
 
-      if (original.tagName === 'text' || original.tagName === 'tspan') {
-        const currentX = original.getAttribute('x')
-        const parentRect = original.closest('g')?.querySelector('rect')
+      if (options?.paddingRatio) {
+        const newWidth = width * options.paddingRatio
+        const newHeight = height * options.paddingRatio
+        const diffX = newWidth - width
+        const diffY = newHeight - height
+        minX -= diffX / 2
+        maxX += diffX / 2
+        minY -= diffY / 2
+        maxY += diffY / 2
+        width = newWidth
+        height = newHeight
+      }
 
-        if (parentRect) {
-          const rectX = parseFloat(parentRect.getAttribute('x') || '0')
+      const clonedGroup = contentGroup.cloneNode(true) as SVGGElement
+      clonedGroup.setAttribute('transform', `translate(${-minX}, ${-minY})`)
 
-          if (currentX === '49') {
-            cloned.setAttribute('x', String(rectX + 15))
-          } else if (currentX && currentX.includes('.')) {
-            const diff = 30
-            const newX = parseFloat(currentX) - diff
-            cloned.setAttribute('x', String(newX))
+      const originalElements = contentGroup.querySelectorAll('*')
+      const clonedElements = clonedGroup.querySelectorAll('*')
+
+      const toRemove: Set<number> = new Set()
+      for (let i = 0; i < originalElements.length; i++) {
+        const original = originalElements[i] as SVGElement
+        if (
+          original.tagName === 'circle' &&
+          original.classList.contains('fill-ring')
+        ) {
+          toRemove.add(i)
+        }
+        if (original.classList.contains('cursor-blink')) {
+          toRemove.add(i)
+        }
+      }
+
+      const getThemeColors = () => {
+        const el = document.createElement('div')
+        el.className =
+          'bg-background text-muted-foreground fixed opacity-0 pointer-events-none -z-50'
+        document.body.appendChild(el)
+        const computed = getComputedStyle(el)
+        const bg = computed.backgroundColor
+        const fg = computed.color
+        document.body.removeChild(el)
+        return { bg, fg }
+      }
+
+      const { bg: bgColor, fg: dotColor } = getThemeColors()
+
+      const styleProps = [
+        'fill',
+        'stroke',
+        'stroke-width',
+        'font-size',
+        'font-family',
+        'font-weight',
+        'text-anchor',
+        'dominant-baseline',
+        'opacity',
+        'color',
+      ]
+
+      for (let i = 0; i < originalElements.length; i++) {
+        const original = originalElements[i] as SVGElement
+        const cloned = clonedElements[i] as SVGElement
+
+        if (toRemove.has(i)) {
+          cloned.remove()
+          continue
+        }
+
+        if (
+          original.tagName === 'g' &&
+          original.hasAttribute('data-concept-id')
+        ) {
+          const x = parseFloat(
+            original.getAttribute('transform')?.split('(')[1].split(',')[0] ||
+              '0'
+          )
+          const y = parseFloat(
+            original.getAttribute('transform')?.split(',')[1].split(')')[0] ||
+              '0'
+          )
+          cloned.setAttribute(
+            'transform',
+            `translate(${x + offsetShift}, ${y})`
+          )
+        }
+
+        if (
+          original.tagName === 'rect' &&
+          !original.classList.contains('fill-ring')
+        ) {
+          const origW = parseFloat(original.getAttribute('width') || '0')
+          if (origW > 50) {
+            cloned.setAttribute('width', String(origW - offsetShift))
           }
         }
-      }
 
-      const computed = window.getComputedStyle(original)
+        if (original.tagName === 'text' || original.tagName === 'tspan') {
+          const currentX = original.getAttribute('x')
+          const parentRect = original.closest('g')?.querySelector('rect')
 
-      for (const prop of styleProps) {
-        const value = computed.getPropertyValue(prop)
+          if (parentRect) {
+            const rectX = parseFloat(parentRect.getAttribute('x') || '0')
 
-        if (value) {
-          cloned.style.setProperty(prop, value)
+            if (currentX === '49') {
+              cloned.setAttribute('x', String(rectX + 15))
+            } else if (currentX && currentX.includes('.')) {
+              const diff = 30
+              const newX = parseFloat(currentX) - diff
+              cloned.setAttribute('x', String(newX))
+            }
+          }
         }
-      }
 
-      if (original.classList.contains('stroke-primary')) {
-        const borderEl = contentGroup.querySelector(
-          '[class*="stroke-border"]'
-        ) as SVGElement | null
-        if (borderEl) {
-          const resolvedBorder =
-            getComputedStyle(borderEl).getPropertyValue('stroke')
-          cloned.style.setProperty('stroke', resolvedBorder)
+        const computed = window.getComputedStyle(original)
+
+        for (const prop of styleProps) {
+          const value = computed.getPropertyValue(prop)
+
+          if (value) {
+            cloned.style.setProperty(prop, value)
+          }
         }
+
+        if (original.classList.contains('stroke-primary')) {
+          const borderEl = contentGroup.querySelector(
+            '[class*="stroke-border"]'
+          ) as SVGElement | null
+          if (borderEl) {
+            const resolvedBorder =
+              getComputedStyle(borderEl).getPropertyValue('stroke')
+            cloned.style.setProperty('stroke', resolvedBorder)
+          }
+        }
+
+        cloned.removeAttribute('class')
       }
 
-      cloned.removeAttribute('class')
-    }
+      const exportSvg = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'svg'
+      )
+      exportSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+      exportSvg.setAttribute('width', `${width}`)
+      exportSvg.setAttribute('height', `${height}`)
+      exportSvg.setAttribute('viewBox', `0 0 ${width} ${height}`)
 
-    const exportSvg = document.createElementNS(
-      'http://www.w3.org/2000/svg',
-      'svg'
-    )
-    exportSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
-    exportSvg.setAttribute('width', `${width}`)
-    exportSvg.setAttribute('height', `${height}`)
-    exportSvg.setAttribute('viewBox', `0 0 ${width} ${height}`)
+      const bgRect = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'rect'
+      )
+      bgRect.setAttribute('width', '100%')
+      bgRect.setAttribute('height', '100%')
+      bgRect.style.fill = bgColor
+      exportSvg.appendChild(bgRect)
 
-    const bgRect = document.createElementNS(
-      'http://www.w3.org/2000/svg',
-      'rect'
-    )
-    bgRect.setAttribute('width', '100%')
-    bgRect.setAttribute('height', '100%')
-    bgRect.style.fill = bgColor
-    exportSvg.appendChild(bgRect)
+      const defs = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'defs'
+      )
+      const pattern = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'pattern'
+      )
+      pattern.setAttribute('id', 'export-dot-pattern')
+      pattern.setAttribute('width', '20')
+      pattern.setAttribute('height', '20')
+      pattern.setAttribute('patternUnits', 'userSpaceOnUse')
+      const dot = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'circle'
+      )
+      dot.setAttribute('cx', '2')
+      dot.setAttribute('cy', '2')
+      dot.setAttribute('r', '1')
+      dot.style.fill = dotColor
+      pattern.appendChild(dot)
+      defs.appendChild(pattern)
+      exportSvg.appendChild(defs)
 
-    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
-    const pattern = document.createElementNS(
-      'http://www.w3.org/2000/svg',
-      'pattern'
-    )
-    pattern.setAttribute('id', 'export-dot-pattern')
-    pattern.setAttribute('width', '20')
-    pattern.setAttribute('height', '20')
-    pattern.setAttribute('patternUnits', 'userSpaceOnUse')
-    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
-    dot.setAttribute('cx', '2')
-    dot.setAttribute('cy', '2')
-    dot.setAttribute('r', '1')
-    dot.style.fill = dotColor
-    pattern.appendChild(dot)
-    defs.appendChild(pattern)
-    exportSvg.appendChild(defs)
+      const dotBg = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'rect'
+      )
+      dotBg.setAttribute('width', '100%')
+      dotBg.setAttribute('height', '100%')
+      dotBg.setAttribute('fill', 'url(#export-dot-pattern)')
+      exportSvg.appendChild(dotBg)
 
-    const dotBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-    dotBg.setAttribute('width', '100%')
-    dotBg.setAttribute('height', '100%')
-    dotBg.setAttribute('fill', 'url(#export-dot-pattern)')
-    exportSvg.appendChild(dotBg)
+      exportSvg.appendChild(clonedGroup)
 
-    exportSvg.appendChild(clonedGroup)
-
-    return { exportSvg, width, height }
-  }, [svgRef, concepts, connections, getEndpointCenter])
+      return { exportSvg, width, height }
+    },
+    [svgRef, concepts, connections, getEndpointCenter]
+  )
 
   const renderToCanvas = useCallback(
     (
@@ -319,19 +339,27 @@ function useExport({
     [buildExportSvg, title]
   )
 
-  const generateThumbnailBase64 = useCallback(async (): Promise<{ light: string | null; dark: string | null }> => {
+  const generateThumbnailBase64 = useCallback(async (): Promise<{
+    light: string | null
+    dark: string | null
+  }> => {
     return new Promise(async (resolve) => {
       const root = window.document.documentElement
       const originalClasses = Array.from(root.classList)
-      
-      const captureTheme = async (themeName: 'light' | 'dark'): Promise<string | null> => {
+
+      const captureTheme = async (
+        themeName: 'light' | 'dark'
+      ): Promise<string | null> => {
         return new Promise((resolveCapture) => {
           root.classList.remove('light', 'dark')
           root.classList.add(themeName)
 
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-              const result = buildExportSvg({ targetAspectRatio: 16 / 9, paddingRatio: 1.15 })
+              const result = buildExportSvg({
+                targetAspectRatio: 16 / 9,
+                paddingRatio: 1.15,
+              })
               if (!result) {
                 resolveCapture(null)
                 return
@@ -357,7 +385,8 @@ function useExport({
                 return
               }
 
-              const bgColor = getComputedStyle(document.body).backgroundColor || 'white'
+              const bgColor =
+                getComputedStyle(document.body).backgroundColor || 'white'
 
               context.fillStyle = bgColor
               context.fillRect(0, 0, canvas.width, canvas.height)
@@ -371,7 +400,7 @@ function useExport({
                 const base64 = canvas.toDataURL('image/jpeg', 0.95)
                 resolveCapture(base64)
               }
-              
+
               img.onerror = () => {
                 URL.revokeObjectURL(url)
                 resolveCapture(null)
@@ -398,14 +427,26 @@ function useExport({
   }, [buildExportSvg])
 
   const exportAsPng = useCallback(() => {
+    if (concepts.length === 0) {
+      setNoConceptsDialogOpen(true)
+      return
+    }
     renderToCanvas('image/png', 'png')
-  }, [renderToCanvas])
+  }, [renderToCanvas, concepts])
 
   const exportAsJpg = useCallback(() => {
+    if (concepts.length === 0) {
+      setNoConceptsDialogOpen(true)
+      return
+    }
     renderToCanvas('image/jpeg', 'jpg', 0.95)
   }, [renderToCanvas])
 
   const exportAsPdf = useCallback(() => {
+    if (concepts.length === 0) {
+      setNoConceptsDialogOpen(true)
+      return
+    }
     const result = buildExportSvg()
     if (!result) return
 
@@ -448,7 +489,14 @@ function useExport({
     img.src = url
   }, [buildExportSvg, title])
 
-  return { exportAsPng, exportAsJpg, exportAsPdf, generateThumbnailBase64 }
+  return {
+    exportAsPng,
+    exportAsJpg,
+    exportAsPdf,
+    generateThumbnailBase64,
+    noConceptsDialogOpen,
+    setNoConceptsDialogOpen,
+  }
 }
 
 export default useExport
