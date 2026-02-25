@@ -20,22 +20,22 @@ function useScalable(
   onScaleEnd?: (id: number) => void
 ) {
   const ref = useRef<SVGRectElement | null>(null)
-  
+
   const onScaleRef = useRef(onScale)
   onScaleRef.current = onScale
-  
+
   const onScaleStartRef = useRef(onScaleStart)
   onScaleStartRef.current = onScaleStart
-  
+
   const onScaleEndRef = useRef(onScaleEnd)
   onScaleEndRef.current = onScaleEnd
-  
+
   const scaleRef = useRef(scale)
   scaleRef.current = scale
-  
+
   const minWidthRef = useRef(minWidth)
   minWidthRef.current = minWidth
-  
+
   const minHeightRef = useRef(minHeight)
   minHeightRef.current = minHeight
 
@@ -51,8 +51,8 @@ function useScalable(
         interact.modifiers.restrictSize({
           min: (() => {
             return {
-              width: minWidthRef.current,
-              height: minHeightRef.current,
+              width: minWidthRef.current * scaleRef.current,
+              height: minHeightRef.current * scaleRef.current,
             }
           }) as any,
         }),
@@ -62,6 +62,7 @@ function useScalable(
           onScaleStartRef.current?.(id)
         },
         move(event) {
+          console.log(scaleRef.current)
           const s = scaleRef.current
           const target = event.target
 
