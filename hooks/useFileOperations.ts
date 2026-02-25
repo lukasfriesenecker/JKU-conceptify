@@ -111,6 +111,11 @@ function useFileOperations({
     setLastSavedData(JSON.stringify(projectData))
   }
 
+  const getSafeFilename = (name: string) => {
+    const safeName = name.replace(/[/\\?%*:|"<>]/g, '-').trim()
+    return `${safeName || 'concept_map'}.json`
+  }
+
   const handleDownload = () => {
     const projectData = getProjectData()
     const blob = new Blob([JSON.stringify(projectData, null, 2)], {
@@ -119,7 +124,7 @@ function useFileOperations({
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'concept_map.json'
+    a.download = getSafeFilename(title)
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -137,7 +142,7 @@ function useFileOperations({
 
     try {
       const handle = await window.showSaveFilePicker({
-        suggestedName: 'concept_map.json',
+        suggestedName: getSafeFilename(title),
         types: [
           {
             description: 'JSON File',
@@ -199,34 +204,38 @@ function useFileOperations({
     }
   }
 
+  const handleSaveFile = async (): Promise<boolean> => {
+    if (!supportsFileSystemAccess) {
+      return handleDownload()
+    }
+
+    try {
+      if (!fileHandle) {
+        return handleSaveAs()
+      }
+
+      await writeToFile(fileHandle)
+
+      toast.success('Datei gespeichert', { position: 'bottom-center' })
+      return true
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') {
+        toast.error('Fehler beim Speichern der Datei', {
+          position: 'bottom-center',
+        })
+      }
+
+      return false
+    }
+  }
+
   const handleSave = async (): Promise<boolean> => {
     if (currentSaveMethod === 'online') {
       return handleSaveOnline()
     }
 
     if (currentSaveMethod === 'file') {
-      if (!supportsFileSystemAccess) {
-        return handleDownload()
-      }
-
-      try {
-        if (!fileHandle) {
-          return handleSaveAs()
-        }
-
-        await writeToFile(fileHandle)
-
-        toast.success('Datei gespeichert', { position: 'bottom-center' })
-        return true
-      } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
-          toast.error('Fehler beim Speichern der Datei', {
-            position: 'bottom-center',
-          })
-        }
-
-        return false
-      }
+      return handleSaveFile()
     }
 
     setIsSaveMethodDialogOpen(true)
@@ -321,13 +330,21 @@ function useFileOperations({
     setCloudProjectId(null)
     setCurrentSaveMethod(null)
     clearSelection()
-    setLastSavedData('')
+    setLastSavedData(
+      JSON.stringify({
+        title: 'Neue Concept Map',
+        description: 'Neue Concept Map Beschreibung',
+        concepts: [],
+        connections: [],
+      })
+    )
 
     toast.success('Neues Projekt erstellt', { position: 'bottom-center' })
   }
 
   return {
     handleSave,
+    handleSaveFile,
     handleSaveAs,
     handleSaveOnline,
     handleSaveProjectInfo,

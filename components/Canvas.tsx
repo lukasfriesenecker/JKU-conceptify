@@ -67,6 +67,7 @@ function Canvas() {
   } = useConceptMapData()
   const {
     handleSave,
+    handleSaveFile,
     handleSaveAs,
     handleSaveProjectInfo,
     handleOpen,
@@ -79,6 +80,7 @@ function Canvas() {
     isSaveMethodDialogOpen,
     setIsSaveMethodDialogOpen,
     handleSaveOnline,
+    currentSaveMethod,
   } = useFileOperations({
     title,
     description,
@@ -218,12 +220,13 @@ function Canvas() {
         description={description}
         onSaveProjectInfo={handleSaveProjectInfo}
         onSave={handleSave}
+        onSaveFile={handleSaveFile}
         onSaveAs={handleSaveAs}
         onSaveOnline={handleSaveOnline}
         onOpen={guardedOpen}
         onNewProject={guardedNewProject}
         onDownload={handleDownload}
-        isSaveDisabled={!hasChanges}
+        isSaveDisabled={!hasChanges && currentSaveMethod !== null}
         supportsFileSystemAccess={supportsFileSystemAccess}
         zoomLevel={viewport.scale}
         onResetZoom={resetZoom}
@@ -322,7 +325,7 @@ function Canvas() {
                 onKeyboardReady={handleKeyboardReady}
               />
               <Button
-                variant="default"
+                variant="secondary"
                 className="mt-2 gap-2"
                 disabled={!concept.label || concept.label.length > 200}
                 onClick={() => {
@@ -388,7 +391,7 @@ function Canvas() {
                 onKeyboardReady={handleKeyboardReady}
               />
               <Button
-                variant="default"
+                variant="secondary"
                 className="mt-1 gap-2"
                 disabled={!connection.label || connection.label.length > 200}
                 onClick={() => handleOnEnter(connection.id, 'connection')}

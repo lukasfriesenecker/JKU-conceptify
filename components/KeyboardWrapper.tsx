@@ -66,10 +66,26 @@ function KeyboardWrapper({
   }
 
   return (
-    <div className="bg-card animate-in fade-in zoom-in-95 z-50 flex items-center gap-2 rounded-lg border p-1 shadow-xl duration-150">
+    <div className="bg-card animate-in fade-in zoom-in-95 z-50 flex w-[360px] items-center gap-2 rounded-lg border p-1 shadow-xl duration-150 sm:w-[420px]">
       <Keyboard
         keyboardRef={(r) => (keyboardRef.current = r)}
         layoutName={layoutName}
+        layout={{
+          default: [
+            '^ 1 2 3 4 5 6 7 8 9 0 ß ´ {bksp}',
+            '{tab} q w e r t z u i o p ü +',
+            '{lock} a s d f g h j k l ö ä # {enter}',
+            '{shift} < y x c v b n m , . - {shift}',
+            '( ) {space}',
+          ],
+          shift: [
+            '° ! " § $ % & / { } = ? ` {bksp}',
+            '{tab} Q W E R T Z U I O P Ü *',
+            '{lock} A S D F G H J K L Ö Ä \' {enter}',
+            '{shift} > Y X C V B N M ; : _ {shift}',
+            '[ ] {space}',
+          ],
+        }}
         onChange={handleOnChange}
         onKeyPress={onKeyPress}
         onInit={(keyboard) => {
@@ -79,11 +95,19 @@ function KeyboardWrapper({
           onKeyboardReady?.(id, keyboard)
         }}
         theme={keyboardTheme}
+        buttonTheme={[
+          {
+            class: '!max-w-12 sm:!max-w-16',
+            buttons: '( ) [ ]',
+          },
+        ]}
         display={{
           '{bksp}': '⌫',
           '{enter}': '↵',
           '{shift}': '⇧',
           '{space}': '␣',
+          '{lock}': '⇪',
+          '{tab}': '⇥',
         }}
       />
     </div>

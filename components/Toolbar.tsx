@@ -37,6 +37,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useTheme } from './ThemeProvider'
+import { authClient } from '@/lib/auth-client'
 import {
   Accordion,
   AccordionContent,
@@ -49,6 +50,7 @@ interface ToolbarProps {
   title: string
   description: string
   onSave: () => void
+  onSaveFile: () => void
   onSaveAs: () => void
   onSaveProjectInfo: (title: string, desc: string) => void
   onOpen: () => void
@@ -70,6 +72,7 @@ interface ToolbarProps {
 
 function Toolbar({
   onSave,
+  onSaveFile,
   onSaveAs,
   onSaveProjectInfo,
   title: initialTitle,
@@ -97,12 +100,19 @@ function Toolbar({
   }, [])
 
   const { theme, setTheme } = useTheme()
+  const { data: session } = authClient.useSession()
   const [title, setTitle] = useState(initialTitle)
   const [description, setDescription] = useState(initialDescription)
   const [popoverOpen, setPopoverOpen] = useState(false)
   const [activeInput, setActiveInput] = useState<
     'title' | 'description' | null
   >(null)
+  const [layoutName, setLayoutName] = useState('default')
+
+  useEffect(() => {
+    setTitle(initialTitle)
+    setDescription(initialDescription)
+  }, [initialTitle, initialDescription])
 
   const keyboard = useRef<any>(null)
   const titleInputRef = useRef<HTMLInputElement>(null)
@@ -131,6 +141,12 @@ function Toolbar({
     }
   }
 
+  const onKeyPress = (button: string) => {
+    if (button === '{shift}' || button === '{lock}') {
+      setLayoutName(layoutName === 'default' ? 'shift' : 'default')
+    }
+  }
+
   const isFileSystemSupported = mounted && supportsFileSystemAccess
 
   return (
@@ -155,7 +171,7 @@ function Toolbar({
               </MenubarItem>
               {isFileSystemSupported ? (
                 <>
-                  <MenubarItem disabled={isSaveDisabled} onClick={onSave}>
+                  <MenubarItem disabled={isSaveDisabled} onClick={onSaveFile}>
                     <Save className="text-card-foreground size-4" />
                     Datei speichern
                   </MenubarItem>
@@ -170,7 +186,7 @@ function Toolbar({
                   Herunterladen
                 </MenubarItem>
               )}
-              <MenubarItem disabled={isSaveDisabled} onClick={onSaveOnline}>
+              <MenubarItem disabled={!session || isSaveDisabled} onClick={onSaveOnline}>
                 <Cloud className="text-card-foreground size-4" />
                 Online speichern
               </MenubarItem>
@@ -252,6 +268,7 @@ function Toolbar({
                 id="title"
                 placeholder="Titel"
                 value={title}
+                maxLength={60}
                 onChange={(e) => handleKeyboardChange(e.target.value)}
                 onFocus={() => handleInputFocus('title')}
               />
@@ -263,6 +280,7 @@ function Toolbar({
                 id="description"
                 placeholder="Beschreibung"
                 value={description}
+                maxLength={200}
                 onChange={(e) => handleKeyboardChange(e.target.value)}
                 onFocus={() => handleInputFocus('description')}
               />
@@ -270,13 +288,39 @@ function Toolbar({
             {mounted && (
               <Keyboard
                 keyboardRef={(r) => (keyboard.current = r)}
+                layoutName={layoutName}
+                layout={{
+                  default: [
+                    '^ 1 2 3 4 5 6 7 8 9 0 ß ´ {bksp}',
+                    '{tab} q w e r t z u i o p ü +',
+                    '{lock} a s d f g h j k l ö ä # {enter}',
+                    '{shift} < y x c v b n m , . - {shift}',
+                    '( ) {space}',
+                  ],
+                  shift: [
+                    '° ! " § $ % & / { } = ? ` {bksp}',
+                    '{tab} Q W E R T Z U I O P Ü *',
+                    '{lock} A S D F G H J K L Ö Ä \' {enter}',
+                    '{shift} > Y X C V B N M ; : _ {shift}',
+                    '[ ] {space}',
+                  ],
+                }}
                 onChange={handleKeyboardChange}
+                onKeyPress={onKeyPress}
                 theme={keyboardTheme}
+                buttonTheme={[
+                  {
+                    class: '!max-w-12 sm:!max-w-16',
+                    buttons: '( ) [ ]',
+                  },
+                ]}
                 display={{
                   '{bksp}': '⌫',
                   '{enter}': '↵',
                   '{shift}': '⇧',
                   '{space}': '␣',
+                  '{lock}': '⇪',
+                  '{tab}': '⇥',
                 }}
               />
             )}

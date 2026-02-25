@@ -4,8 +4,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog'
-import { AlertCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 interface NoConceptsDialogProps {
   open: boolean
@@ -18,19 +19,18 @@ export default function NoConceptsDialog({
 }: NoConceptsDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" showCloseButton={false}>
         <DialogHeader>
           <DialogTitle>Export nicht möglich</DialogTitle>
           <DialogDescription>
-            Es konnten keine Concepts zum Exportieren gefunden werden.
+            Auf der Zeichenfläche befinden sich keine Konzepte.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-4 py-4">
-          <div className="text-muted-foreground bg-muted/50 flex items-center gap-3 rounded p-3 text-sm">
-            <AlertCircle className="text-primary size-5 shrink-0" />
-            Keine Concepts zum Exportieren gefunden.
-          </div>
-        </div>
+        <DialogFooter className="sm:justify-end">
+          <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
+            Schließen
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

@@ -68,6 +68,7 @@ function Concept({
   onDragEnd,
 }: ConceptProps) {
   const [minDims, setMinDims] = useState({ width: 100, height: 50 })
+  const prevTextDims = useRef({ width: 0, height: 0 })
   const dragRef = useDraggable(id, scale, onDrag, onDragStart, onDragEnd)
   const scaleRef = useScalable(
     id,
@@ -101,12 +102,34 @@ function Concept({
 
     setMinDims({ width: textWidth, height: textHeight })
 
-    const parsedWidth = parseFloat(width) || 100
-    const parsedHeight = parseFloat(height) || 50
+    let parsedWidth = parseFloat(width) || 100
+    let parsedHeight = parseFloat(height) || 50
+
+    if (
+      prevTextDims.current.height > 0 &&
+      textHeight < prevTextDims.current.height &&
+      Math.abs(parsedHeight - prevTextDims.current.height) < 1
+    ) {
+      parsedHeight = textHeight
+    }
+    
+    if (
+      prevTextDims.current.width > 0 &&
+      textWidth < prevTextDims.current.width &&
+      Math.abs(parsedWidth - prevTextDims.current.width) < 1
+    ) {
+      parsedWidth = textWidth
+    }
+
+    prevTextDims.current = { width: textWidth, height: textHeight }
+
     const newWidth = Math.max(textWidth, parsedWidth)
     const newHeight = Math.max(textHeight, parsedHeight)
 
-    if (newWidth > parsedWidth || newHeight > parsedHeight) {
+    const prevWidthFloat = parseFloat(width) || 100
+    const prevHeightFloat = parseFloat(height) || 50
+
+    if (newWidth !== prevWidthFloat || newHeight !== prevHeightFloat) {
       onLabelChange(id, `${newWidth}px`, 'concept', `${newHeight}px`)
     }
   }, [label, id, onLabelChange, hideConnectionPoints, width, height])
