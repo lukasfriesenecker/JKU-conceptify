@@ -62,7 +62,6 @@ function useScalable(
           onScaleStartRef.current?.(id)
         },
         move(event) {
-          console.log(scaleRef.current)
           const s = scaleRef.current
           const target = event.target
 
