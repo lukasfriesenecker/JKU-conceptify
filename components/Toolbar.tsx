@@ -141,9 +141,51 @@ function Toolbar({
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      const target = e.currentTarget
+      const start = target.selectionStart ?? 0
+      const end = target.selectionEnd ?? 0
+      const val = target.value
+      const newValue = val.substring(0, start) + '   ' + val.substring(end)
+
+      handleKeyboardChange(newValue)
+      
+      if (keyboard.current) {
+         keyboard.current.setInput(newValue)
+         keyboard.current.setCaretPosition(start + 3)
+      }
+      
+      setTimeout(() => {
+        target.setSelectionRange(start + 3, start + 3)
+      }, 0)
+    }
+  }
+
   const onKeyPress = (button: string) => {
     if (button === '{shift}' || button === '{lock}') {
       setLayoutName(layoutName === 'default' ? 'shift' : 'default')
+    }
+
+    if (button === '{tab}') {
+      const keyboardObj = keyboard.current
+      if (keyboardObj) {
+        const currentInput = keyboardObj.getInput() ?? ''
+        const caretPos = keyboardObj.getCaretPosition() ?? currentInput.length
+        const newValue =
+          currentInput.slice(0, caretPos) + '   ' + currentInput.slice(caretPos)
+        
+        keyboardObj.setInput(newValue)
+        keyboardObj.setCaretPosition(caretPos + 3)
+        handleKeyboardChange(newValue)
+        
+        if (activeInput === 'title' && titleInputRef.current) {
+           setTimeout(() => titleInputRef.current?.setSelectionRange(caretPos + 3, caretPos + 3), 1)
+        } else if (activeInput === 'description' && descriptionInputRef.current) {
+           setTimeout(() => descriptionInputRef.current?.setSelectionRange(caretPos + 3, caretPos + 3), 1)
+        }
+      }
     }
   }
 
@@ -248,13 +290,9 @@ function Toolbar({
           }}
         >
           <PopoverTrigger asChild>
-            <Button variant="ghost">
-              {title.length > 20 ? title.slice(0, 20) + '…' : title}
-              <Separator orientation="vertical" className="hidden 2xl:flex" />
-              <span className="hidden 2xl:inline">
-                {description.length > 40
-                  ? description.slice(0, 40) + '…'
-                  : description}
+            <Button variant="ghost" className="max-w-[120px] sm:max-w-[200px] md:max-w-[300px] lg:max-w-[400px]">
+              <span className="truncate block w-full overflow-hidden text-ellipsis whitespace-nowrap text-center">
+                {title || 'Titel'}
               </span>
             </Button>
           </PopoverTrigger>
@@ -271,6 +309,7 @@ function Toolbar({
                 maxLength={60}
                 onChange={(e) => handleKeyboardChange(e.target.value)}
                 onFocus={() => handleInputFocus('title')}
+                onKeyDown={handleKeyDown}
               />
             </div>
             <div className="grid w-full gap-3">
@@ -283,6 +322,7 @@ function Toolbar({
                 maxLength={200}
                 onChange={(e) => handleKeyboardChange(e.target.value)}
                 onFocus={() => handleInputFocus('description')}
+                onKeyDown={handleKeyDown}
               />
             </div>
             {mounted && (
@@ -294,14 +334,14 @@ function Toolbar({
                     '^ 1 2 3 4 5 6 7 8 9 0 ß ´ {bksp}',
                     '{tab} q w e r t z u i o p ü +',
                     '{lock} a s d f g h j k l ö ä # {enter}',
-                    '{shift} < y x c v b n m , . - {shift}',
+                    '{shift} < y x c v b n m , . - @',
                     '( ) {space}',
                   ],
                   shift: [
                     '° ! " § $ % & / { } = ? ` {bksp}',
                     '{tab} Q W E R T Z U I O P Ü *',
                     '{lock} A S D F G H J K L Ö Ä \' {enter}',
-                    '{shift} > Y X C V B N M ; : _ {shift}',
+                    '{shift} > Y X C V B N M ; : _ @',
                     '[ ] {space}',
                   ],
                 }}

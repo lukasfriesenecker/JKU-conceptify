@@ -260,6 +260,7 @@ function Connection({
 
         {cursorPos && (
           <rect
+            key={`${cursorPos.x}-${cursorPos.y}`}
             x={cursorPos.x}
             y={cursorPos.y}
             width={1.5}

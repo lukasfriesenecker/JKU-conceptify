@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { authClient } from '@/lib/auth-client'
 import Link from 'next/link'
+import { AuthKeyboard } from './AuthKeyboard'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -31,6 +32,27 @@ export function LoginForm({
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [activeInput, setActiveInput] = useState<'email' | 'password' | null>(null)
+  
+  const emailInputRef = useRef<HTMLInputElement>(null)
+  const passwordInputRef = useRef<HTMLInputElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setActiveInput(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault()
@@ -52,7 +74,7 @@ export function LoginForm({
   }
 
   return (
-    <div className={cn('flex flex-col gap-6', className)} {...props}>
+    <div className={cn('flex flex-col gap-6', className)} {...props} ref={containerRef}>
       <Card>
         <CardHeader>
           <CardTitle>Anmelden</CardTitle>
@@ -69,7 +91,7 @@ export function LoginForm({
                   {error}
                 </div>
               )}
-              <Field>
+              <Field className="relative">
                 <FieldLabel htmlFor="email">Email</FieldLabel>
                 <Input
                   id="email"
@@ -78,9 +100,23 @@ export function LoginForm({
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onFocus={() => setActiveInput('email')}
+                  ref={emailInputRef}
                 />
+                
+                {activeInput === 'email' && (
+                  <AuthKeyboard
+                    value={email}
+                    onChange={setEmail}
+                    onKeyPress={(btn) => {
+                      if (btn === '{enter}') setActiveInput(null)
+                    }}
+                    onSave={() => setActiveInput(null)}
+                    inputRef={emailInputRef}
+                  />
+                )}
               </Field>
-              <Field>
+              <Field className="relative">
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Passwort</FieldLabel>
                 </div>
@@ -91,7 +127,21 @@ export function LoginForm({
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onFocus={() => setActiveInput('password')}
+                  ref={passwordInputRef}
                 />
+                
+                {activeInput === 'password' && (
+                  <AuthKeyboard
+                    value={password}
+                    onChange={setPassword}
+                    onKeyPress={(btn) => {
+                      if (btn === '{enter}') setActiveInput(null)
+                    }}
+                    onSave={() => setActiveInput(null)}
+                    inputRef={passwordInputRef}
+                  />
+                )}
               </Field>
               <Field>
                 <Button type="submit" disabled={isLoading}>
