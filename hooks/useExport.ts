@@ -4,6 +4,11 @@ import { useCallback, useState } from 'react'
 import { jsPDF } from 'jspdf'
 import type { IConcept } from '@/types/Concept'
 import type { IConnection } from '@/types/Connection'
+import {
+  getEndpointBoundsStateless,
+  getEndpointCenterStateless,
+  getEdgeIntersection,
+} from './useConceptMapData'
 
 interface UseExportProps {
   svgRef: React.RefObject<SVGSVGElement | null>
@@ -38,41 +43,87 @@ function useExport({
       const padding = 40
       const offsetShift = 34
 
+      const getExportBounds = (id: number, type: 'concept' | 'connection' | undefined) => {
+        const bounds = getEndpointBoundsStateless(id, type, concepts, connections)
+        if (!type || type === 'concept') {
+          bounds.x += offsetShift 
+
+          if (bounds.width > 50) {
+            bounds.width -= offsetShift
+          }
+        } else if (type === 'connection') {
+          bounds.width -= 30
+          bounds.x += 15
+        }
+        return bounds
+      }
+
+      const getExportCenter = (id: number, type: 'concept' | 'connection' | undefined) => {
+        const bounds = getExportBounds(id, type)
+        return {
+          x: bounds.x + bounds.width / 2,
+          y: bounds.y + bounds.height / 2
+        }
+      }
+
+      const exportCoords = new Map<number, any>()
+
       let minX = Infinity,
         minY = Infinity,
         maxX = -Infinity,
         maxY = -Infinity
 
       for (const concept of concepts) {
-        const w = parseFloat(concept.width) - offsetShift
-        const h = parseFloat(concept.height)
-
-        minX = Math.min(minX, concept.x + offsetShift)
-        minY = Math.min(minY, concept.y)
-        maxX = Math.max(maxX, concept.x + w + offsetShift)
-        maxY = Math.max(maxY, concept.y + h)
+        const bounds = getExportBounds(concept.id, 'concept')
+        minX = Math.min(minX, bounds.x)
+        minY = Math.min(minY, bounds.y)
+        maxX = Math.max(maxX, bounds.x + bounds.width)
+        maxY = Math.max(maxY, bounds.y + bounds.height)
       }
 
       for (const connection of connections) {
-        const from = getEndpointCenter(connection.from, connection.fromType)
-        const to = getEndpointCenter(connection.to, connection.toType)
+        const rawExportFrom = getExportCenter(connection.from, connection.fromType)
+        const rawExportTo = getExportCenter(connection.to, connection.toType)
 
-        if (!connection.fromType || connection.fromType === 'concept') {
-          from.x += offsetShift / 2
-        }
+        const exportFromBounds = getExportBounds(connection.from, connection.fromType)
+        const exportToBounds = getExportBounds(connection.to, connection.toType)
 
-        if (!connection.toType || connection.toType === 'concept') {
-          to.x += offsetShift / 2
-        }
+        const exportFrom = getEdgeIntersection(rawExportTo, exportFromBounds)
+        const exportTo = getEdgeIntersection(rawExportFrom, exportToBounds)
 
-        const mx = (from.x + to.x) / 2
-        const my = (from.y + to.y) / 2
+        const exportMidX = (exportFrom.x + exportTo.x) / 2
+        const exportMidY = (exportFrom.y + exportTo.y) / 2
+
+        const oldFrom = getEndpointCenterStateless(connection.from, connection.fromType, concepts, connections)
+        const oldTo = getEndpointCenterStateless(connection.to, connection.toType, concepts, connections)
+        const oldMidX = (oldFrom.x + oldTo.x) / 2
+
+        const extraTargets = (connection.extraTargets || []).map(targetId => {
+          const tBounds = getExportBounds(targetId, 'concept')
+          const origin = { x: exportMidX, y: exportMidY }
+          return getEdgeIntersection(origin, tBounds)
+        })
+
+        exportCoords.set(connection.id, {
+          from: exportFrom,
+          to: exportTo,
+          midShift: exportMidX - oldMidX,
+          origMidX: oldMidX,
+          extraTargets
+        })
+
         const labelWidth = parseFloat(connection.width) + 10
+        minX = Math.min(minX, exportFrom.x, exportTo.x, exportMidX - 45)
+        minY = Math.min(minY, exportFrom.y, exportTo.y, exportMidY - 15)
+        maxX = Math.max(maxX, exportFrom.x, exportTo.x, exportMidX - 45 + labelWidth)
+        maxY = Math.max(maxY, exportFrom.y, exportTo.y, exportMidY + 15)
 
-        minX = Math.min(minX, from.x, to.x, mx - 45)
-        minY = Math.min(minY, from.y, to.y, my - 15)
-        maxX = Math.max(maxX, from.x, to.x, mx - 45 + labelWidth)
-        maxY = Math.max(maxY, from.y, to.y, my + 15)
+        for (const tgt of extraTargets) {
+          minX = Math.min(minX, tgt.x)
+          minY = Math.min(minY, tgt.y)
+          maxX = Math.max(maxX, tgt.x)
+          maxY = Math.max(maxY, tgt.y)
+        }
       }
 
       if (!isFinite(minX)) return null
@@ -148,6 +199,7 @@ function useExport({
       }
 
       const { bg: bgColor, fg: dotColor } = getThemeColors()
+      const fgColor = dotColor
 
       const styleProps = [
         'fill',
@@ -189,41 +241,50 @@ function useExport({
           )
         }
 
-        if (original.tagName === 'line') {
-          const shiftX1 = original.getAttribute('data-export-x1-shift') === 'true'
-          const shiftX2 = original.getAttribute('data-export-x2-shift') === 'true'
+        const parentConnG = original.closest('g[data-connection-id]')
+        const connId = parentConnG ? parseInt(parentConnG.getAttribute('data-connection-id') || '-1', 10) : -1
+        const exportData = exportCoords.get(connId)
 
-          if (shiftX1) {
-            const origX1 = parseFloat(original.getAttribute('x1') || '0')
-            cloned.setAttribute('x1', String(origX1 + offsetShift / 2))
-          }
-          if (shiftX2) {
-            const origX2 = parseFloat(original.getAttribute('x2') || '0')
-            cloned.setAttribute('x2', String(origX2 + offsetShift / 2))
+        if (original.tagName === 'line' && exportData) {
+          const isMain = original.getAttribute('data-is-main-line') === 'true'
+          const isExtra = original.getAttribute('data-is-extra-line') === 'true'
+          
+          if (isMain) {
+            cloned.setAttribute('x1', String(exportData.from.x))
+            cloned.setAttribute('y1', String(exportData.from.y))
+            cloned.setAttribute('x2', String(exportData.to.x))
+            cloned.setAttribute('y2', String(exportData.to.y))
+          } else if (isExtra) {
+            const idx = parseInt(original.getAttribute('data-extra-index') || '0', 10)
+            const tgt = exportData.extraTargets[idx]
+            if (tgt) {
+               const midX = (exportData.from.x + exportData.to.x) / 2
+               const midY = (exportData.from.y + exportData.to.y) / 2
+               cloned.setAttribute('x1', String(midX))
+               cloned.setAttribute('y1', String(midY))
+               cloned.setAttribute('x2', String(tgt.x))
+               cloned.setAttribute('y2', String(tgt.y))
+            }
           }
         }
 
         const isConnectionRect = original.getAttribute('data-export-type') === 'connection-rect'
-        const isConnectionText = original.getAttribute('data-export-type') === 'connection-text'
-        const hidePointsStr = original.getAttribute('data-hide-points')
-
-        const mxShiftX1 = original.getAttribute('data-export-x1-shift') === 'true'
-        const mxShiftX2 = original.getAttribute('data-export-x2-shift') === 'true'
-        const mxShift = ((mxShiftX1 ? offsetShift / 2 : 0) + (mxShiftX2 ? offsetShift / 2 : 0)) / 2
-
-        if (isConnectionRect) {
+        const isConnectionText = original.getAttribute('data-export-type') === 'connection-text' || original.parentElement?.getAttribute('data-export-type') === 'connection-text'
+        const hidePointsStr = original.tagName === 'tspan' ? original.parentElement?.getAttribute('data-hide-points') : original.getAttribute('data-hide-points')
+        
+        if (isConnectionRect && exportData) {
           const origW = parseFloat(original.getAttribute('width') || '0')
-          const origX = parseFloat(original.getAttribute('x') || '0')
+          const w = hidePointsStr === 'false' ? (origW - 30) : origW
+          
+          const midX = (exportData.from.x + exportData.to.x) / 2
+          const targetX = hidePointsStr === 'false' ? (midX + 15 - origW / 2) : (midX - origW / 2)
 
-          if (hidePointsStr === 'false') {
-            cloned.setAttribute('width', String(origW - 30))
-            cloned.setAttribute('x', String(origX + 15 + mxShift))
-          } else if (mxShift > 0) {
-            cloned.setAttribute('x', String(origX + mxShift))
-          }
+          cloned.setAttribute('width', String(w))
+          cloned.setAttribute('x', String(targetX))
         } else if (
           original.tagName === 'rect' &&
-          !original.classList.contains('fill-ring')
+          !original.classList.contains('fill-ring') &&
+          !isConnectionRect
         ) {
           const origW = parseFloat(original.getAttribute('width') || '0')
           if (origW > 50) {
@@ -231,14 +292,14 @@ function useExport({
           }
         }
 
-        if (isConnectionText) {
-          const origX = parseFloat(original.getAttribute('x') || '0')
+        if (isConnectionText && exportData) {
+          const parentRect = original.closest('g[data-connection-id]')?.querySelector('rect')
+          const origW = parseFloat(parentRect?.getAttribute('width') || '0')
+          const midX = (exportData.from.x + exportData.to.x) / 2
 
-          if (hidePointsStr === 'false') {
-            cloned.setAttribute('x', String(origX - 15 + mxShift))
-          } else if (mxShift > 0) {
-            cloned.setAttribute('x', String(origX + mxShift))
-          }
+          const targetX = hidePointsStr === 'false' ? (midX + 15 - origW / 2) : (midX - origW / 2)
+          const textX = targetX + 7
+          cloned.setAttribute('x', String(textX))
         } else if (original.tagName === 'text' || original.tagName === 'tspan') {
           const currentX = original.getAttribute('x')
           const parentRect = original.closest('g')?.querySelector('rect')
@@ -316,6 +377,30 @@ function useExport({
       dot.style.fill = dotColor
       pattern.appendChild(dot)
       defs.appendChild(pattern)
+
+      const marker = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'marker'
+      )
+      marker.setAttribute('id', 'arrow')
+      marker.setAttribute('viewBox', '0 0 10 10')
+      marker.setAttribute('refX', '9')
+      marker.setAttribute('refY', '5')
+      marker.setAttribute('markerWidth', '6')
+      marker.setAttribute('markerHeight', '6')
+      marker.setAttribute('orient', 'auto-start-reverse')
+
+      const path = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'path'
+      )
+      path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z')
+      
+      path.setAttribute('fill', fgColor)
+      
+      marker.appendChild(path)
+      defs.appendChild(marker)
+
       exportSvg.appendChild(defs)
 
       const dotBg = document.createElementNS(

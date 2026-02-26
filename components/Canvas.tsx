@@ -15,7 +15,7 @@ import { Button } from './ui/button'
 import { Check } from 'lucide-react'
 
 import useSelectionState from '@/hooks/useSelectionState'
-import useConceptMapData from '@/hooks/useConceptMapData'
+import useConceptMapData, { getEdgeIntersection, getConceptBounds } from '@/hooks/useConceptMapData'
 import useFileOperations from '@/hooks/useFileOperations'
 import useConnectionDraw from '@/hooks/useConnectionDraw'
 import useExport from '@/hooks/useExport'
@@ -61,7 +61,9 @@ function Canvas() {
     deleteConcept,
     deleteConnection,
     getConceptCenter,
+    getConnectionCenter,
     getEndpointCenter,
+    getConnectionEndpoints,
     lableChangeWidthAdjustment,
     addConcept,
   } = useConceptMapData()
@@ -426,6 +428,17 @@ function Canvas() {
           >
             <circle cx="2" cy="2" r="1" className="fill-muted-foreground" />
           </pattern>
+          <marker
+            id="arrow"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" className="fill-card-foreground" />
+          </marker>
         </defs>
 
         <rect className="h-full w-full fill-[url(#dot-pattern)]" />
@@ -436,6 +449,7 @@ function Canvas() {
           {connections.map((connection) => (
             <g
               key={connection.id}
+              data-connection-id={connection.id}
               onClick={() => {
                 if (isDrawingRef.current) return
                 toggleConnectionSelection(connection.id)
@@ -446,22 +460,29 @@ function Canvas() {
                 width={connection.width}
                 id={connection.id}
                 label={connection.label}
-                from={getEndpointCenter(connection.from, connection.fromType)}
-                to={getEndpointCenter(connection.to, connection.toType)}
-                onLabelChange={lableChangeWidthAdjustment}
+                {...getConnectionEndpoints(connection)}
+                isSelected={selectedConnectionIds.includes(connection.id)}
                 caretPosition={
                   editingConnectionIds.includes(connection.id)
                     ? caretPositions[connection.id]
                     : undefined
                 }
+                onLabelChange={lableChangeWidthAdjustment}
                 onCaretClick={handleCaretClick}
                 onStartConnection={(connId, e) =>
                   handleStartConnection(connId, e, 'connection')
                 }
                 extraTargetPositions={(connection.extraTargets ?? []).map(
-                  (targetId) => getConceptCenter(targetId)
+                  (targetId) => {
+                    const targetConcept = concepts.find(c => c.id === targetId)
+                    if (!targetConcept) return getConceptCenter(targetId)
+                    
+                    return getEdgeIntersection(
+                      getConnectionCenter(connection.id),
+                      getConceptBounds(targetConcept)
+                    )
+                  }
                 )}
-                isSelected={selectedConnectionIds.includes(connection.id)}
                 hideConnectionPoints={hideConnectionPoints}
               />
             </g>

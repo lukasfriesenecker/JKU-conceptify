@@ -4,6 +4,136 @@ import type { IConcept } from '@/types/Concept'
 import type { IConnection } from '@/types/Connection'
 import { useCallback, useEffect, useState } from 'react'
 
+export const getConceptCenter = (concept: IConcept) => {
+  return {
+    x: concept.x + parseFloat(concept.width) / 2,
+    y: concept.y + parseFloat(concept.height) / 2,
+  }
+}
+
+export const getConceptBounds = (concept: IConcept) => {
+  return {
+    x: concept.x,
+    y: concept.y,
+    width: parseFloat(concept.width) || +concept.width,
+    height: parseFloat(concept.height) || +concept.height,
+  }
+}
+
+export const getConnectionCenter = (
+  connection: IConnection,
+  concepts: IConcept[],
+  connections: IConnection[]
+): { x: number; y: number } => {
+  const fromPos = getEndpointCenterStateless(connection.from, connection.fromType, concepts, connections)
+  const toPos = getEndpointCenterStateless(connection.to, connection.toType, concepts, connections)
+  return {
+    x: (fromPos.x + toPos.x) / 2,
+    y: (fromPos.y + toPos.y) / 2,
+  }
+}
+
+export const getConnectionBounds = (
+  connection: IConnection,
+  concepts: IConcept[],
+  connections: IConnection[]
+) => {
+  const center = getConnectionCenter(connection, concepts, connections)
+  const width = parseFloat(connection.width) + 44
+  const height = 34
+  
+  return {
+    x: center.x - width / 2,
+    y: center.y - height / 2,
+    width,
+    height,
+  }
+}
+
+export const getEndpointCenterStateless = (
+  id: number,
+  type: 'concept' | 'connection' | undefined,
+  concepts: IConcept[],
+  connections: IConnection[]
+): { x: number; y: number } => {
+  if (type === 'connection') {
+    const conn = connections.find(c => c.id === id)
+    return conn ? getConnectionCenter(conn, concepts, connections) : { x: 0, y: 0 }
+  }
+  const concept = concepts.find(c => c.id === id)
+  return concept ? getConceptCenter(concept) : { x: 0, y: 0 }
+}
+
+export const getEndpointBoundsStateless = (
+  id: number,
+  type: 'concept' | 'connection' | undefined,
+  concepts: IConcept[],
+  connections: IConnection[]
+) => {
+  if (type === 'connection') {
+    const conn = connections.find(c => c.id === id)
+    return conn ? getConnectionBounds(conn, concepts, connections) : { x: 0, y: 0, width: 0, height: 0 }
+  }
+  const concept = concepts.find(c => c.id === id)
+  return concept ? getConceptBounds(concept) : { x: 0, y: 0, width: 0, height: 0 }
+}
+
+export const getEdgeIntersection = (
+  fromPos: { x: number; y: number },
+  toBounds: { x: number; y: number; width: number; height: number }
+): { x: number; y: number } => {
+  if (toBounds.width <= 0 || toBounds.height <= 0) {
+    return { 
+      x: toBounds.x + toBounds.width / 2, 
+      y: toBounds.y + toBounds.height / 2 
+    }
+  }
+
+  const { x: rx, y: ry, width: rw, height: rh } = toBounds
+  const cx = rx + rw / 2
+  const cy = ry + rh / 2
+
+  const dx = fromPos.x - cx
+  const dy = fromPos.y - cy
+
+  if (dx === 0 && dy === 0) {
+    return { x: cx, y: cy }
+  }
+
+  const absDx = Math.abs(dx)
+  const absDy = Math.abs(dy)
+  
+  const halfW = rw / 2
+  const halfH = rh / 2
+
+  const scaleX = absDx > 0 ? halfW / absDx : Infinity
+  const scaleY = absDy > 0 ? halfH / absDy : Infinity
+
+  const scale = Math.min(scaleX, scaleY)
+
+  return {
+    x: cx + dx * scale,
+    y: cy + dy * scale,
+  }
+}
+
+export const getConnectionEndpoints = (
+  connection: IConnection,
+  concepts: IConcept[],
+  connections: IConnection[]
+): { from: { x: number; y: number }, to: { x: number; y: number } } => {
+  const rawFrom = getEndpointCenterStateless(connection.from, connection.fromType, concepts, connections)
+  const rawTo = getEndpointCenterStateless(connection.to, connection.toType, concepts, connections)
+
+  const fromBounds = getEndpointBoundsStateless(connection.from, connection.fromType, concepts, connections)
+  const toBounds = getEndpointBoundsStateless(connection.to, connection.toType, concepts, connections)
+
+  return {
+    from: getEdgeIntersection(rawTo, fromBounds),
+    to: getEdgeIntersection(rawFrom, toBounds),
+  }
+}
+
 function useConceptMapData() {
   const STORAGE_KEY = 'concept-map-data'
 
@@ -218,37 +348,27 @@ function useConceptMapData() {
     setConnections((prev) => prev.filter((conn) => conn.id !== id))
   }, [])
 
-  const getConceptCenter = (id: number) => {
+  const getConceptCenterStateful = (id: number) => {
     const concept = concepts.find((c) => c.id === id)
-
-    if (!concept) return { x: 0, y: 0 }
-
-    return {
-      x: concept.x + parseFloat(concept.width) / 2,
-      y: concept.y + parseFloat(concept.height) / 2,
-    }
+    return concept ? getConceptCenter(concept) : { x: 0, y: 0 }
   }
 
-  const getConnectionCenter = (id: number): { x: number; y: number } => {
+  const getConnectionCenterStateful = (id: number): { x: number; y: number } => {
     const connection = connections.find((c) => c.id === id)
-    if (!connection) return { x: 0, y: 0 }
-
-    const fromPos = getEndpointCenter(connection.from, connection.fromType)
-    const toPos = getEndpointCenter(connection.to, connection.toType)
-    return {
-      x: (fromPos.x + toPos.x) / 2,
-      y: (fromPos.y + toPos.y) / 2,
-    }
+    return connection ? getConnectionCenter(connection, concepts, connections) : { x: 0, y: 0 }
   }
 
-  const getEndpointCenter = (
+  const getEndpointCenterStateful = (
     id: number,
     type?: 'concept' | 'connection'
   ): { x: number; y: number } => {
-    if (type === 'connection') {
-      return getConnectionCenter(id)
-    }
-    return getConceptCenter(id)
+    return getEndpointCenterStateless(id, type, concepts, connections)
+  }
+
+  const getConnectionEndpointsStateful = (
+    connection: IConnection
+  ): { from: { x: number; y: number }, to: { x: number; y: number } } => {
+    return getConnectionEndpoints(connection, concepts, connections)
   }
 
   const lableChangeWidthAdjustment = useCallback(
@@ -320,9 +440,10 @@ function useConceptMapData() {
     handleConceptScale,
     deleteConcept,
     deleteConnection,
-    getConceptCenter,
-    getConnectionCenter,
-    getEndpointCenter,
+    getConceptCenter: getConceptCenterStateful,
+    getConnectionCenter: getConnectionCenterStateful,
+    getEndpointCenter: getEndpointCenterStateful,
+    getConnectionEndpoints: getConnectionEndpointsStateful,
     lableChangeWidthAdjustment,
     addConcept,
   }

@@ -197,8 +197,8 @@ function Connection({
         x2={to.x}
         y2={to.y}
         className="stroke-card-foreground stroke-1"
-        data-export-x1-shift={!from.type || from.type === 'concept' ? 'true' : 'false'}
-        data-export-x2-shift={!to.type || to.type === 'concept' ? 'true' : 'false'}
+        data-is-main-line="true"
+        markerEnd="url(#arrow)"
       />
 
       {extraTargetPositions?.map((target, i) => (
@@ -209,8 +209,9 @@ function Connection({
           x2={target.x}
           y2={target.y}
           className="stroke-card-foreground stroke-1"
-          data-export-x1-shift="false"
-          data-export-x2-shift="true"
+          data-is-extra-line="true"
+          data-extra-index={i}
+          markerEnd="url(#arrow)"
         />
       ))}
 
