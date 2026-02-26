@@ -263,14 +263,10 @@ function Toolbar({
           variant="ghost"
           size="icon"
           className="hidden md:flex"
-          onClick={isFileSystemSupported ? onSave : onDownload}
-          disabled={isFileSystemSupported ? isSaveDisabled : false}
+          onClick={onSave}
+          disabled={isSaveDisabled}
         >
-          {isFileSystemSupported ? (
-            <Save className="text-card-foreground size-6" />
-          ) : (
-            <FileDown className="text-card-foreground size-6" />
-          )}
+          <Save className="text-card-foreground size-6" />
         </Button>
       </div>
 

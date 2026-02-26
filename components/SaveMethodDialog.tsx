@@ -14,6 +14,7 @@ interface SaveMethodDialogProps {
   onOpenChange: (open: boolean) => void
   onSaveOnline: () => void
   onSaveFile: () => void
+  supportsFileSystemAccess?: boolean
 }
 
 export default function SaveMethodDialog({
@@ -21,6 +22,7 @@ export default function SaveMethodDialog({
   onOpenChange,
   onSaveOnline,
   onSaveFile,
+  supportsFileSystemAccess = true,
 }: SaveMethodDialogProps) {
   const { data: session } = authClient.useSession()
 
@@ -67,11 +69,19 @@ export default function SaveMethodDialog({
               onOpenChange(false)
             }}
           >
-            <FolderPlus className="text-primary size-7" />
+            {supportsFileSystemAccess ? (
+              <FolderPlus className="text-primary size-7" />
+            ) : (
+              <FileDown className="text-primary size-7" />
+            )}
             <div className="flex flex-col items-start text-left">
-              <span className="text-base font-semibold">Datei speichern</span>
+              <span className="text-base font-semibold">
+                {supportsFileSystemAccess ? 'Datei speichern' : 'Datei herunterladen'}
+              </span>
               <span className="text-muted-foreground text-xs">
-                Als JSON-Datei auf Ihrem Gerät speichern
+                {supportsFileSystemAccess 
+                  ? 'Als JSON-Datei auf Ihrem Gerät speichern' 
+                  : 'Als JSON-Datei auf Ihr Gerät herunterladen'}
               </span>
             </div>
           </Button>

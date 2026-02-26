@@ -549,6 +549,7 @@ function Canvas() {
         onOpenChange={setIsSaveMethodDialogOpen}
         onSaveOnline={handleSaveOnline}
         onSaveFile={handleSaveAs}
+        supportsFileSystemAccess={supportsFileSystemAccess}
       />
 
       <NoConceptsDialog

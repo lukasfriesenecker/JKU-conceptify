@@ -237,7 +237,7 @@ function useFileOperations({
       savedOnline = await handleSaveOnline()
     }
 
-    if (fileHandle) {
+    if (fileHandle || (currentSaveMethod === 'file' && !supportsFileSystemAccess)) {
       savedLocal = await handleSaveFile()
     }
 
