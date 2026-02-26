@@ -56,6 +56,15 @@ function useExport({
       for (const connection of connections) {
         const from = getEndpointCenter(connection.from, connection.fromType)
         const to = getEndpointCenter(connection.to, connection.toType)
+
+        if (!connection.fromType || connection.fromType === 'concept') {
+          from.x += offsetShift / 2
+        }
+
+        if (!connection.toType || connection.toType === 'concept') {
+          to.x += offsetShift / 2
+        }
+
         const mx = (from.x + to.x) / 2
         const my = (from.y + to.y) / 2
         const labelWidth = parseFloat(connection.width) + 10
@@ -180,16 +189,37 @@ function useExport({
           )
         }
 
+        if (original.tagName === 'line') {
+          const shiftX1 = original.getAttribute('data-export-x1-shift') === 'true'
+          const shiftX2 = original.getAttribute('data-export-x2-shift') === 'true'
+
+          if (shiftX1) {
+            const origX1 = parseFloat(original.getAttribute('x1') || '0')
+            cloned.setAttribute('x1', String(origX1 + offsetShift / 2))
+          }
+          if (shiftX2) {
+            const origX2 = parseFloat(original.getAttribute('x2') || '0')
+            cloned.setAttribute('x2', String(origX2 + offsetShift / 2))
+          }
+        }
+
         const isConnectionRect = original.getAttribute('data-export-type') === 'connection-rect'
         const isConnectionText = original.getAttribute('data-export-type') === 'connection-text'
         const hidePointsStr = original.getAttribute('data-hide-points')
 
+        const mxShiftX1 = original.getAttribute('data-export-x1-shift') === 'true'
+        const mxShiftX2 = original.getAttribute('data-export-x2-shift') === 'true'
+        const mxShift = ((mxShiftX1 ? offsetShift / 2 : 0) + (mxShiftX2 ? offsetShift / 2 : 0)) / 2
+
         if (isConnectionRect) {
+          const origW = parseFloat(original.getAttribute('width') || '0')
+          const origX = parseFloat(original.getAttribute('x') || '0')
+
           if (hidePointsStr === 'false') {
-            const origW = parseFloat(original.getAttribute('width') || '0')
-            const origX = parseFloat(original.getAttribute('x') || '0')
             cloned.setAttribute('width', String(origW - 30))
-            cloned.setAttribute('x', String(origX + 15))
+            cloned.setAttribute('x', String(origX + 15 + mxShift))
+          } else if (mxShift > 0) {
+            cloned.setAttribute('x', String(origX + mxShift))
           }
         } else if (
           original.tagName === 'rect' &&
@@ -202,9 +232,12 @@ function useExport({
         }
 
         if (isConnectionText) {
+          const origX = parseFloat(original.getAttribute('x') || '0')
+
           if (hidePointsStr === 'false') {
-            const origX = parseFloat(original.getAttribute('x') || '0')
-            cloned.setAttribute('x', String(origX - 15))
+            cloned.setAttribute('x', String(origX - 15 + mxShift))
+          } else if (mxShift > 0) {
+            cloned.setAttribute('x', String(origX + mxShift))
           }
         } else if (original.tagName === 'text' || original.tagName === 'tspan') {
           const currentX = original.getAttribute('x')

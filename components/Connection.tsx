@@ -8,10 +8,12 @@ interface ConnectionProps {
   from: {
     x: number
     y: number
+    type?: 'concept' | 'connection'
   }
   to: {
     x: number
     y: number
+    type?: 'concept' | 'connection'
   }
   onLabelChange: (id: number, textWidth: string, type: string) => void
   width: string
@@ -195,6 +197,8 @@ function Connection({
         x2={to.x}
         y2={to.y}
         className="stroke-card-foreground stroke-1"
+        data-export-x1-shift={!from.type || from.type === 'concept' ? 'true' : 'false'}
+        data-export-x2-shift={!to.type || to.type === 'concept' ? 'true' : 'false'}
       />
 
       {extraTargetPositions?.map((target, i) => (
@@ -205,6 +209,8 @@ function Connection({
           x2={target.x}
           y2={target.y}
           className="stroke-card-foreground stroke-1"
+          data-export-x1-shift="false"
+          data-export-x2-shift="true"
         />
       ))}
 
@@ -219,6 +225,8 @@ function Connection({
           className={`fill-card stroke-1 ${isSelected ? 'stroke-primary' : 'stroke-border'}`}
           data-export-type="connection-rect"
           data-hide-points={hideConnectionPoints ? 'true' : 'false'}
+          data-export-x1-shift={!from.type || from.type === 'concept' ? 'true' : 'false'}
+          data-export-x2-shift={!to.type || to.type === 'concept' ? 'true' : 'false'}
         />
 
         <circle
@@ -247,6 +255,8 @@ function Connection({
           xmlSpace="preserve"
           data-export-type="connection-text"
           data-hide-points={hideConnectionPoints ? 'true' : 'false'}
+          data-export-x1-shift={!from.type || from.type === 'concept' ? 'true' : 'false'}
+          data-export-x2-shift={!to.type || to.type === 'concept' ? 'true' : 'false'}
         >
           {label.split('\n').map((line, i) => (
             <tspan
@@ -258,6 +268,8 @@ function Connection({
               dy={i === 0 ? 0 : '1.2em'}
               data-export-type="connection-text"
               data-hide-points={hideConnectionPoints ? 'true' : 'false'}
+              data-export-x1-shift={!from.type || from.type === 'concept' ? 'true' : 'false'}
+              data-export-x2-shift={!to.type || to.type === 'concept' ? 'true' : 'false'}
             >
               {line || ' '}
             </tspan>

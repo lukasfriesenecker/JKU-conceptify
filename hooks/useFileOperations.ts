@@ -230,15 +230,31 @@ function useFileOperations({
   }
 
   const handleSave = async (): Promise<boolean> => {
-    if (currentSaveMethod === 'online') {
-      return handleSaveOnline()
+    let savedOnline = false
+    let savedLocal = false
+
+    if (cloudProjectId) {
+      savedOnline = await handleSaveOnline()
     }
 
-    if (currentSaveMethod === 'file') {
-      return handleSaveFile()
+    if (fileHandle) {
+      savedLocal = await handleSaveFile()
     }
 
-    setIsSaveMethodDialogOpen(true)
+    if (savedOnline || savedLocal) {
+      return true
+    }
+
+    if (!cloudProjectId && !fileHandle) {
+      if (currentSaveMethod === 'online') {
+        return handleSaveOnline()
+      }
+      if (currentSaveMethod === 'file') {
+        return handleSaveFile()
+      }
+      setIsSaveMethodDialogOpen(true)
+    }
+    
     return false
   }
 
@@ -358,6 +374,8 @@ function useFileOperations({
     isSaveMethodDialogOpen,
     setIsSaveMethodDialogOpen,
     currentSaveMethod,
+    isLinkedToCloud: cloudProjectId !== null,
+    isLinkedToFile: fileHandle !== null,
   }
 }
 

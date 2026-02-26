@@ -80,7 +80,8 @@ function Canvas() {
     isSaveMethodDialogOpen,
     setIsSaveMethodDialogOpen,
     handleSaveOnline,
-    currentSaveMethod,
+    isLinkedToCloud,
+    isLinkedToFile,
   } = useFileOperations({
     title,
     description,
@@ -226,7 +227,9 @@ function Canvas() {
         onOpen={guardedOpen}
         onNewProject={guardedNewProject}
         onDownload={handleDownload}
-        isSaveDisabled={!hasChanges && currentSaveMethod !== null}
+        isSaveDisabled={!hasChanges && (isLinkedToFile || isLinkedToCloud)}
+        isSaveFileDisabled={!hasChanges && isLinkedToFile}
+        isSaveOnlineDisabled={!hasChanges && isLinkedToCloud}
         supportsFileSystemAccess={supportsFileSystemAccess}
         zoomLevel={viewport.scale}
         onResetZoom={resetZoom}

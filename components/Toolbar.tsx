@@ -58,6 +58,8 @@ interface ToolbarProps {
   onDownload: () => void
   onSaveOnline: () => void
   isSaveDisabled: boolean
+  isSaveFileDisabled: boolean
+  isSaveOnlineDisabled: boolean
   supportsFileSystemAccess: boolean
   zoomLevel: number
   onResetZoom: () => void
@@ -82,6 +84,8 @@ function Toolbar({
   onDownload,
   onSaveOnline,
   isSaveDisabled,
+  isSaveFileDisabled,
+  isSaveOnlineDisabled,
   supportsFileSystemAccess,
   zoomLevel,
   onResetZoom,
@@ -206,7 +210,7 @@ function Toolbar({
               </MenubarItem>
               {isFileSystemSupported ? (
                 <>
-                  <MenubarItem disabled={isSaveDisabled} onClick={onSaveFile}>
+                  <MenubarItem disabled={isSaveFileDisabled} onClick={onSaveFile}>
                     <Save className="text-card-foreground size-4" />
                     Datei speichern
                   </MenubarItem>
@@ -221,7 +225,7 @@ function Toolbar({
                   Herunterladen
                 </MenubarItem>
               )}
-              <MenubarItem disabled={!session || isSaveDisabled} onClick={onSaveOnline}>
+              <MenubarItem disabled={!session || isSaveOnlineDisabled} onClick={onSaveOnline}>
                 <Cloud className="text-card-foreground size-4" />
                 Online speichern
               </MenubarItem>
