@@ -1,10 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Keyboard from 'react-simple-keyboard'
 import type { SimpleKeyboard } from 'react-simple-keyboard/build/interfaces'
-import 'react-simple-keyboard/build/css/index.css'
-import { useTheme } from './ThemeProvider'
+import { BaseKeyboard } from './BaseKeyboard'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
@@ -25,14 +23,9 @@ export function AuthKeyboard({
   className,
   inputRef,
 }: AuthKeyboardProps) {
-  const [layoutName, setLayoutName] = useState('default')
-  const [isLocked, setIsLocked] = useState(false)
   const [placement, setPlacement] = useState<'bottom' | 'top'>('bottom')
   const keyboardRef = useRef<SimpleKeyboard | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const { theme } = useTheme()
-  const keyboardTheme =
-    theme === 'dark' ? 'hg-theme-default dark' : 'hg-theme-default light'
 
   useEffect(() => {
     if (keyboardRef.current) {
@@ -53,25 +46,6 @@ export function AuthKeyboard({
   }, [])
 
   const handleKeyPress = (button: string) => {
-    if (button === '{shift}') {
-      setLayoutName(layoutName === 'default' ? 'shift' : 'default')
-      setIsLocked(false)
-      if (onKeyPress) onKeyPress(button)
-      return
-    }
-
-    if (button === '{lock}') {
-      const newLocked = !isLocked
-      setIsLocked(newLocked)
-      setLayoutName(newLocked ? 'shift' : 'default')
-      if (onKeyPress) onKeyPress(button)
-      return
-    }
-
-    if (layoutName === 'shift' && !isLocked) {
-      setLayoutName('default')
-    }
-
     if (button === '{tab}') {
       const keyboard = keyboardRef.current
       if (keyboard) {
@@ -116,42 +90,10 @@ export function AuthKeyboard({
       <div
         className="bg-card animate-in fade-in zoom-in-95 z-50 flex w-[360px] items-center gap-2 rounded-lg border p-1 shadow-xl duration-150 sm:w-[420px]"
       >
-        <Keyboard
+        <BaseKeyboard
           keyboardRef={(r) => (keyboardRef.current = r)}
-          layoutName={layoutName}
-          layout={{
-            default: [
-              '^ 1 2 3 4 5 6 7 8 9 0 ß ´ {bksp}',
-              '{tab} q w e r t z u i o p ü +',
-              '{lock} a s d f g h j k l ö ä # {enter}',
-              '{shift} < y x c v b n m , . - @',
-              '( ) {space}',
-            ],
-            shift: [
-              '° ! " § $ % & / { } = ? ` {bksp}',
-              '{tab} Q W E R T Z U I O P Ü *',
-              '{lock} A S D F G H J K L Ö Ä \' {enter}',
-              '{shift} > Y X C V B N M ; : _ @',
-              '[ ] {space}',
-            ],
-          }}
           onChange={onChange}
           onKeyPress={handleKeyPress}
-          theme={keyboardTheme}
-          buttonTheme={[
-            {
-              class: '!max-w-12 sm:!max-w-16',
-              buttons: '( ) [ ]',
-            },
-          ]}
-          display={{
-            '{bksp}': '⌫',
-            '{enter}': '↵',
-            '{shift}': '⇧',
-            '{space}': '␣',
-            '{lock}': '⇪',
-            '{tab}': '⇥',
-          }}
         />
       </div>
       {placement === 'bottom' && onSave && (

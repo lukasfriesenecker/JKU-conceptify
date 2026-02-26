@@ -13,8 +13,8 @@ import {
   SlidersVertical,
   Sun,
 } from 'lucide-react'
-import Keyboard from 'react-simple-keyboard'
-import 'react-simple-keyboard/build/css/index.css'
+import type { SimpleKeyboard } from 'react-simple-keyboard/build/interfaces'
+import { BaseKeyboard } from './BaseKeyboard'
 import {
   Menubar,
   MenubarContent,
@@ -107,18 +107,15 @@ function Toolbar({
   const [activeInput, setActiveInput] = useState<
     'title' | 'description' | null
   >(null)
-  const [layoutName, setLayoutName] = useState('default')
 
   useEffect(() => {
     setTitle(initialTitle)
     setDescription(initialDescription)
   }, [initialTitle, initialDescription])
 
-  const keyboard = useRef<any>(null)
+  const keyboard = useRef<SimpleKeyboard | null>(null)
   const titleInputRef = useRef<HTMLInputElement>(null)
   const descriptionInputRef = useRef<HTMLTextAreaElement>(null)
-  const keyboardTheme =
-    theme === 'dark' ? 'hg-theme-default dark' : 'hg-theme-default light'
 
   const handleKeyboardChange = (input: string) => {
     if (activeInput === 'title') {
@@ -164,10 +161,6 @@ function Toolbar({
   }
 
   const onKeyPress = (button: string) => {
-    if (button === '{shift}' || button === '{lock}') {
-      setLayoutName(layoutName === 'default' ? 'shift' : 'default')
-    }
-
     if (button === '{tab}') {
       const keyboardObj = keyboard.current
       if (keyboardObj) {
@@ -326,42 +319,10 @@ function Toolbar({
               />
             </div>
             {mounted && (
-              <Keyboard
+              <BaseKeyboard
                 keyboardRef={(r) => (keyboard.current = r)}
-                layoutName={layoutName}
-                layout={{
-                  default: [
-                    '^ 1 2 3 4 5 6 7 8 9 0 ß ´ {bksp}',
-                    '{tab} q w e r t z u i o p ü +',
-                    '{lock} a s d f g h j k l ö ä # {enter}',
-                    '{shift} < y x c v b n m , . - @',
-                    '( ) {space}',
-                  ],
-                  shift: [
-                    '° ! " § $ % & / { } = ? ` {bksp}',
-                    '{tab} Q W E R T Z U I O P Ü *',
-                    '{lock} A S D F G H J K L Ö Ä \' {enter}',
-                    '{shift} > Y X C V B N M ; : _ @',
-                    '[ ] {space}',
-                  ],
-                }}
                 onChange={handleKeyboardChange}
                 onKeyPress={onKeyPress}
-                theme={keyboardTheme}
-                buttonTheme={[
-                  {
-                    class: '!max-w-12 sm:!max-w-16',
-                    buttons: '( ) [ ]',
-                  },
-                ]}
-                display={{
-                  '{bksp}': '⌫',
-                  '{enter}': '↵',
-                  '{shift}': '⇧',
-                  '{space}': '␣',
-                  '{lock}': '⇪',
-                  '{tab}': '⇥',
-                }}
               />
             )}
             <div className="flex flex-col justify-end gap-4 md:flex-row md:gap-2">
