@@ -217,6 +217,8 @@ function Connection({
           rx="17"
           ry="17"
           className={`fill-card stroke-1 ${isSelected ? 'stroke-primary' : 'stroke-border'}`}
+          data-export-type="connection-rect"
+          data-hide-points={hideConnectionPoints ? 'true' : 'false'}
         />
 
         <circle
@@ -243,6 +245,8 @@ function Connection({
           style={{ cursor: caretPosition !== undefined ? 'text' : undefined }}
           onClick={handleTextClick}
           xmlSpace="preserve"
+          data-export-type="connection-text"
+          data-hide-points={hideConnectionPoints ? 'true' : 'false'}
         >
           {label.split('\n').map((line, i) => (
             <tspan
@@ -252,6 +256,8 @@ function Connection({
               }}
               x={rectLeft + paddingLeft}
               dy={i === 0 ? 0 : '1.2em'}
+              data-export-type="connection-text"
+              data-hide-points={hideConnectionPoints ? 'true' : 'false'}
             >
               {line || ' '}
             </tspan>

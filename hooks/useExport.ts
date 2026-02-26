@@ -180,7 +180,18 @@ function useExport({
           )
         }
 
-        if (
+        const isConnectionRect = original.getAttribute('data-export-type') === 'connection-rect'
+        const isConnectionText = original.getAttribute('data-export-type') === 'connection-text'
+        const hidePointsStr = original.getAttribute('data-hide-points')
+
+        if (isConnectionRect) {
+          if (hidePointsStr === 'false') {
+            const origW = parseFloat(original.getAttribute('width') || '0')
+            const origX = parseFloat(original.getAttribute('x') || '0')
+            cloned.setAttribute('width', String(origW - 30))
+            cloned.setAttribute('x', String(origX + 15))
+          }
+        } else if (
           original.tagName === 'rect' &&
           !original.classList.contains('fill-ring')
         ) {
@@ -190,7 +201,12 @@ function useExport({
           }
         }
 
-        if (original.tagName === 'text' || original.tagName === 'tspan') {
+        if (isConnectionText) {
+          if (hidePointsStr === 'false') {
+            const origX = parseFloat(original.getAttribute('x') || '0')
+            cloned.setAttribute('x', String(origX - 15))
+          }
+        } else if (original.tagName === 'text' || original.tagName === 'tspan') {
           const currentX = original.getAttribute('x')
           const parentRect = original.closest('g')?.querySelector('rect')
 
@@ -199,10 +215,6 @@ function useExport({
 
             if (currentX === '49') {
               cloned.setAttribute('x', String(rectX + 15))
-            } else if (currentX && currentX.includes('.')) {
-              const diff = 30
-              const newX = parseFloat(currentX) - diff
-              cloned.setAttribute('x', String(newX))
             }
           }
         }
