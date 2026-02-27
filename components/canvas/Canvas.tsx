@@ -213,7 +213,7 @@ function Canvas() {
     }
   }, [])
 
-  const lastTapRef = useRef<{ time: number; x: number; y: number; id: number } | null>(null)
+  const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null)
 
   const handlePointerDown = (event: React.PointerEvent<SVGSVGElement>) => {
     const now = Date.now()
@@ -223,7 +223,6 @@ function Canvas() {
     const lastTap = lastTapRef.current
     if (
       lastTap &&
-      lastTap.id === event.pointerId &&
       now - lastTap.time < DOUBLE_TAP_DELAY &&
       Math.abs(event.clientX - lastTap.x) < DOUBLE_TAP_RADIUS &&
       Math.abs(event.clientY - lastTap.y) < DOUBLE_TAP_RADIUS
@@ -244,7 +243,6 @@ function Canvas() {
         time: now,
         x: event.clientX,
         y: event.clientY,
-        id: event.pointerId,
       }
     }
   }
