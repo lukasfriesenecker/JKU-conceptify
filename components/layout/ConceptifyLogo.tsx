@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-export function ConceptifyLogo() {
+function ConceptifyLogo() {
   return (
     <Link href="/">
       <div className="bg-card hover:bg-accent hover:text-accent-foreground absolute top-4 left-4 z-50 hidden h-[54px] cursor-pointer items-center gap-3 rounded-sm border px-4 shadow-2xl transition-colors xl:flex">
@@ -53,3 +53,5 @@ export function ConceptifyLogo() {
     </Link>
   )
 }
+
+export default ConceptifyLogo

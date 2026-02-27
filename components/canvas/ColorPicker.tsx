@@ -2,22 +2,24 @@
 
 import { useState } from 'react'
 import { SketchPicker } from 'react-color'
-import type { IConcept } from '../types/Concept'
+import type { IConcept } from '@/types/Concept'
 import { X } from 'lucide-react'
-interface IProps {
+
+interface ColorPickerProps {
   concept: IConcept
   viewport: { x: number; y: number; scale: number }
   onColorChange: (id: number, color: any, type: string) => void
   onClose: (id: number) => void
   target: string
 }
+
 function ColorPicker({
   concept,
   viewport,
   onColorChange,
   onClose,
   target,
-}: IProps) {
+}: ColorPickerProps) {
   const [background, setBackground] = useState('#fff')
   const screenX = concept.x * viewport.scale + viewport.x
   const screenY = concept.y * viewport.scale + viewport.y

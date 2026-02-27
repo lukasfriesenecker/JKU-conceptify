@@ -14,7 +14,7 @@ import {
   Sun,
 } from 'lucide-react'
 import type { SimpleKeyboard } from 'react-simple-keyboard/build/interfaces'
-import { BaseKeyboard } from './BaseKeyboard'
+import { useState, useRef, useEffect } from 'react'
 import {
   Menubar,
   MenubarContent,
@@ -36,7 +36,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useTheme } from './ThemeProvider'
+import { useTheme } from '@/components/layout/ThemeProvider'
 import { authClient } from '@/lib/auth-client'
 import {
   Accordion,
@@ -44,7 +44,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import { useState, useRef, useEffect } from 'react'
+import { BaseKeyboard } from '@/components/keyboard/BaseKeyboard'
 
 interface ToolbarProps {
   title: string
@@ -128,6 +128,7 @@ function Toolbar({
       setDescription(input)
     }
   }
+
   const handleInputFocus = (inputName: 'title' | 'description') => {
     setActiveInput(inputName)
     setTimeout(() => {
@@ -142,7 +143,9 @@ function Toolbar({
     }
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     if (e.key === 'Tab') {
       e.preventDefault()
       const target = e.currentTarget
@@ -152,12 +155,12 @@ function Toolbar({
       const newValue = val.substring(0, start) + '   ' + val.substring(end)
 
       handleKeyboardChange(newValue)
-      
+
       if (keyboard.current) {
-         keyboard.current.setInput(newValue)
-         keyboard.current.setCaretPosition(start + 3)
+        keyboard.current.setInput(newValue)
+        keyboard.current.setCaretPosition(start + 3)
       }
-      
+
       setTimeout(() => {
         target.setSelectionRange(start + 3, start + 3)
       }, 0)
@@ -172,15 +175,32 @@ function Toolbar({
         const caretPos = keyboardObj.getCaretPosition() ?? currentInput.length
         const newValue =
           currentInput.slice(0, caretPos) + '   ' + currentInput.slice(caretPos)
-        
+
         keyboardObj.setInput(newValue)
         keyboardObj.setCaretPosition(caretPos + 3)
         handleKeyboardChange(newValue)
-        
+
         if (activeInput === 'title' && titleInputRef.current) {
-           setTimeout(() => titleInputRef.current?.setSelectionRange(caretPos + 3, caretPos + 3), 1)
-        } else if (activeInput === 'description' && descriptionInputRef.current) {
-           setTimeout(() => descriptionInputRef.current?.setSelectionRange(caretPos + 3, caretPos + 3), 1)
+          setTimeout(
+            () =>
+              titleInputRef.current?.setSelectionRange(
+                caretPos + 3,
+                caretPos + 3
+              ),
+            1
+          )
+        } else if (
+          activeInput === 'description' &&
+          descriptionInputRef.current
+        ) {
+          setTimeout(
+            () =>
+              descriptionInputRef.current?.setSelectionRange(
+                caretPos + 3,
+                caretPos + 3
+              ),
+            1
+          )
         }
       }
     }
@@ -210,7 +230,10 @@ function Toolbar({
               </MenubarItem>
               {isFileSystemSupported ? (
                 <>
-                  <MenubarItem disabled={isSaveFileDisabled} onClick={onSaveFile}>
+                  <MenubarItem
+                    disabled={isSaveFileDisabled}
+                    onClick={onSaveFile}
+                  >
                     <Save className="text-card-foreground size-4" />
                     Datei speichern
                   </MenubarItem>
@@ -225,7 +248,10 @@ function Toolbar({
                   Herunterladen
                 </MenubarItem>
               )}
-              <MenubarItem disabled={!session || isSaveOnlineDisabled} onClick={onSaveOnline}>
+              <MenubarItem
+                disabled={!session || isSaveOnlineDisabled}
+                onClick={onSaveOnline}
+              >
                 <Cloud className="text-card-foreground size-4" />
                 Online speichern
               </MenubarItem>
@@ -283,8 +309,11 @@ function Toolbar({
           }}
         >
           <PopoverTrigger asChild>
-            <Button variant="ghost" className="max-w-[120px] sm:max-w-[200px] md:max-w-[300px] lg:max-w-[400px]">
-              <span className="truncate block w-full overflow-hidden text-ellipsis whitespace-nowrap text-center">
+            <Button
+              variant="ghost"
+              className="max-w-[120px] sm:max-w-[200px] md:max-w-[300px] lg:max-w-[400px]"
+            >
+              <span className="block w-full truncate overflow-hidden text-center text-ellipsis whitespace-nowrap">
                 {title || 'Titel'}
               </span>
             </Button>

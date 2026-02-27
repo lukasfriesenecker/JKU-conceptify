@@ -1,31 +1,32 @@
 'use client'
 
 import { useCallback, useRef, useState, type MouseEvent } from 'react'
-import Connection from './Connection'
-import Concept from './Concept'
-import usePanZoom from '../hooks/usePanZoom'
-import Toolbar from './Toolbar'
-import ConceptMenu from './ConceptMenu'
-import ConnectionMenu from './ConnectionMenu'
-import KeyboardWrapper from './KeyboardWrapper'
-import ColorPicker from './ColorPicker'
-import UnsavedChangesDialog from './UnsavedChangesDialog'
-import SaveMethodDialog from './SaveMethodDialog'
-import { Button } from './ui/button'
+import useSelectionState from '@/hooks/state/useSelectionState'
+import useConceptMapData, {
+  getEdgeIntersection,
+  getConceptBounds,
+} from '@/hooks/state/useConceptMapData'
+import useFileOperations from '@/hooks/files/useFileOperations'
+import useConnectionDraw from '@/hooks/canvas/useConnectionDraw'
+import usePanZoom from '@/hooks/canvas/usePanZoom'
+import useExport from '@/hooks/files/useExport'
+import Toolbar from '@/components/layout/Toolbar'
+import AccountInfo from '@/components/layout/AccountInfo'
+import ConceptMenu from '@/components/canvas/ConceptMenu'
+import ConnectionMenu from '@/components/canvas/ConnectionMenu'
+import KeyboardWrapper from '@/components/keyboard/CanvasKeyboard'
+import { Button } from '@/components/ui/button'
+import ColorPicker from '@/components/canvas/ColorPicker'
+import Connection from '@/components/canvas/Connection'
+import Concept from '@/components/canvas/Concept'
+import UnsavedChangesDialog from '@/components/dialogs/UnsavedChangesDialog'
+import SaveMethodDialog from '@/components/dialogs/SaveMethodDialog'
+import NoConceptsDialog from '@/components/dialogs/EmptyCanvasDialog'
 import { Check } from 'lucide-react'
-
-import useSelectionState from '@/hooks/useSelectionState'
-import useConceptMapData, { getEdgeIntersection, getConceptBounds } from '@/hooks/useConceptMapData'
-import useFileOperations from '@/hooks/useFileOperations'
-import useConnectionDraw from '@/hooks/useConnectionDraw'
-import useExport from '@/hooks/useExport'
-import AccountInfo from './AccountInfo'
-import NoConceptsDialog from './NoConceptsDialog'
 
 function Canvas() {
   const { ref, viewport, resetZoom, panZoomLocked, setPanZoomLocked } =
     usePanZoom()
-  const [hideConnectionPoints, setHideConnectionPoints] = useState(false)
   const {
     selectedConceptIds,
     selectedConnectionIds,
@@ -72,7 +73,7 @@ function Canvas() {
     handleSaveFile,
     handleSaveAs,
     handleSaveProjectInfo,
-    handleOpen,
+    handleOpenProject,
     handleNewProject,
     handleDownload,
     handleFileInputChange,
@@ -97,11 +98,13 @@ function Canvas() {
     getThumbnail: () => generateThumbnailBase64(),
   })
 
+  const [hideConnectionPoints, setHideConnectionPoints] = useState(false)
   const [pendingAction, setPendingAction] = useState<'open' | 'new' | null>(
     null
   )
-
-  const [interactingConceptId, setInteractingConceptId] = useState<number | null>(null)
+  const [interactingConceptId, setInteractingConceptId] = useState<
+    number | null
+  >(null)
 
   const handleInteractionStart = useCallback((id: number) => {
     setInteractingConceptId(id)
@@ -123,7 +126,7 @@ function Canvas() {
     if (hasChanges) {
       setPendingAction('open')
     } else {
-      handleOpen()
+      handleOpenProject()
     }
   }
 
@@ -133,14 +136,14 @@ function Canvas() {
     if (!saved) return
     setPendingAction(null)
     if (action === 'new') handleNewProject()
-    else if (action === 'open') handleOpen()
+    else if (action === 'open') handleOpenProject()
   }
 
   const handleDialogDiscard = () => {
     const action = pendingAction
     setPendingAction(null)
     if (action === 'new') handleNewProject()
-    else if (action === 'open') handleOpen()
+    else if (action === 'open') handleOpenProject()
   }
 
   const handleDialogCancel = () => {
@@ -169,7 +172,14 @@ function Canvas() {
     toCanvasCoordinates,
   })
 
-  const { exportAsPng, exportAsJpg, exportAsPdf, generateThumbnailBase64, noConceptsDialogOpen, setNoConceptsDialogOpen } = useExport({
+  const {
+    exportAsPng,
+    exportAsJpg,
+    exportAsPdf,
+    generateThumbnailBase64,
+    noConceptsDialogOpen,
+    setNoConceptsDialogOpen,
+  } = useExport({
     svgRef: ref,
     title,
     concepts,
@@ -180,7 +190,6 @@ function Canvas() {
   const [caretPositions, setCaretPositions] = useState<Record<number, number>>(
     {}
   )
-
   const keyboardInstances = useRef<
     Record<number, { setCaretPosition: (pos: number) => void }>
   >({})
@@ -334,7 +343,7 @@ function Canvas() {
                 className="mt-2 gap-2"
                 disabled={!concept.label || concept.label.length > 200}
                 onClick={() => {
-                  handleOnEnter(concept.id, 'concept');
+                  handleOnEnter(concept.id, 'concept')
                 }}
               >
                 <Check className="h-4 w-4" />
@@ -474,9 +483,11 @@ function Canvas() {
                 }
                 extraTargetPositions={(connection.extraTargets ?? []).map(
                   (targetId) => {
-                    const targetConcept = concepts.find(c => c.id === targetId)
+                    const targetConcept = concepts.find(
+                      (c) => c.id === targetId
+                    )
                     if (!targetConcept) return getConceptCenter(targetId)
-                    
+
                     return getEdgeIntersection(
                       getConnectionCenter(connection.id),
                       getConceptBounds(targetConcept)

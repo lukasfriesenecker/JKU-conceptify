@@ -8,15 +8,15 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 
-interface NoConceptsDialogProps {
+interface EmptyCanvasDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-export default function NoConceptsDialog({
+export default function EmptyCanvasDialog({
   open,
   onOpenChange,
-}: NoConceptsDialogProps) {
+}: EmptyCanvasDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md" showCloseButton={false}>
@@ -27,7 +27,11 @@ export default function NoConceptsDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="sm:justify-end">
-          <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => onOpenChange(false)}
+          >
             Schließen
           </Button>
         </DialogFooter>

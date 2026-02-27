@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Canvas from '@/components/Canvas'
 import Image from 'next/image'
+import Canvas from '@/components/canvas/Canvas'
 
 function App() {
   const [mounted, setMounted] = useState(false)

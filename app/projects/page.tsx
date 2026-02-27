@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import AccountInfo from '@/components/AccountInfo'
-import ProjectCard from '@/components/ProjectCard'
-import { Input } from '@/components/ui/input'
 import { Search, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import AccountInfo from '@/components/layout/AccountInfo'
+import ProjectCard from '@/components/layout/ProjectCard'
+import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -16,28 +16,20 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { useTheme } from '@/components/layout/ThemeProvider'
+import { IProject } from '@/types/Project'
 
-import { useTheme } from '@/components/ThemeProvider'
-
-interface Project {
-  id: string
-  title: string
-  description: string
-  thumbnailLight?: string
-  thumbnailDark?: string
-  updatedAt: string
-}
-
-function ProjectsPage() {
-  const router = useRouter()
+function Page() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [projects, setProjects] = useState<Project[]>([])
+  const [projects, setProjects] = useState<IProject[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [projectToOpen, setProjectToOpen] = useState<string | null>(null)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isUnsavedChangesDialogOpen, setisUnsavedChangesDialogOpen] =
+    useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null)
-  
+
+  const router = useRouter()
   const { theme } = useTheme()
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light')
 
@@ -45,7 +37,7 @@ function ProjectsPage() {
     if (theme === 'system') {
       const match = window.matchMedia('(prefers-color-scheme: dark)')
       setResolvedTheme(match.matches ? 'dark' : 'light')
-      
+
       const listener = (e: MediaQueryListEvent) => {
         setResolvedTheme(e.matches ? 'dark' : 'light')
       }
@@ -85,7 +77,7 @@ function ProjectsPage() {
 
     if (isDirty) {
       setProjectToOpen(id)
-      setIsDialogOpen(true)
+      setisUnsavedChangesDialogOpen(true)
       return
     }
 
@@ -93,14 +85,14 @@ function ProjectsPage() {
   }
 
   const confirmOpenProject = async (id: string) => {
-    setIsDialogOpen(false)
+    setisUnsavedChangesDialogOpen(false)
 
     toast.promise(
       fetch(`/api/projects?id=${id}`).then(async (res) => {
         if (!res.ok) {
           throw new Error('Fehler beim Laden')
         }
-        
+
         const data = await res.json()
 
         const projectData = {
@@ -119,7 +111,7 @@ function ProjectsPage() {
         success: 'Projekt geöffnet',
         error: 'Fehler beim Laden des Projekts',
         position: 'bottom-center',
-      },
+      }
     )
   }
 
@@ -142,7 +134,8 @@ function ProjectsPage() {
         if (!res.ok) {
           throw new Error('Fehler beim Löschen')
         }
-        setProjects(prev => prev.filter(p => p.id !== id))
+
+        setProjects((prev) => prev.filter((p) => p.id !== id))
       }),
       {
         loading: 'Lösche Projekt...',
@@ -207,7 +200,10 @@ function ProjectsPage() {
         </div>
       </main>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog
+        open={isUnsavedChangesDialogOpen}
+        onOpenChange={setisUnsavedChangesDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Ungespeicherte Änderungen</DialogTitle>
@@ -217,7 +213,10 @@ function ProjectsPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="secondary" onClick={() => setIsDialogOpen(false)}>
+            <Button
+              variant="secondary"
+              onClick={() => setisUnsavedChangesDialogOpen(false)}
+            >
               Abbrechen
             </Button>
             <Button
@@ -228,7 +227,7 @@ function ProjectsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -238,13 +237,13 @@ function ProjectsPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="secondary" onClick={() => setIsDeleteDialogOpen(false)}>
+            <Button
+              variant="secondary"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
               Abbrechen
             </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDeleteProject}
-            >
+            <Button variant="destructive" onClick={confirmDeleteProject}>
               Löschen
             </Button>
           </DialogFooter>
@@ -254,4 +253,4 @@ function ProjectsPage() {
   )
 }
 
-export default ProjectsPage
+export default Page

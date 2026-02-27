@@ -25,8 +25,18 @@ export const getConnectionCenter = (
   concepts: IConcept[],
   connections: IConnection[]
 ): { x: number; y: number } => {
-  const fromPos = getEndpointCenterStateless(connection.from, connection.fromType, concepts, connections)
-  const toPos = getEndpointCenterStateless(connection.to, connection.toType, concepts, connections)
+  const fromPos = getEndpointCenterStateless(
+    connection.from,
+    connection.fromType,
+    concepts,
+    connections
+  )
+  const toPos = getEndpointCenterStateless(
+    connection.to,
+    connection.toType,
+    concepts,
+    connections
+  )
   return {
     x: (fromPos.x + toPos.x) / 2,
     y: (fromPos.y + toPos.y) / 2,
@@ -41,7 +51,7 @@ export const getConnectionBounds = (
   const center = getConnectionCenter(connection, concepts, connections)
   const width = parseFloat(connection.width) + 44
   const height = 34
-  
+
   return {
     x: center.x - width / 2,
     y: center.y - height / 2,
@@ -57,10 +67,12 @@ export const getEndpointCenterStateless = (
   connections: IConnection[]
 ): { x: number; y: number } => {
   if (type === 'connection') {
-    const conn = connections.find(c => c.id === id)
-    return conn ? getConnectionCenter(conn, concepts, connections) : { x: 0, y: 0 }
+    const conn = connections.find((c) => c.id === id)
+    return conn
+      ? getConnectionCenter(conn, concepts, connections)
+      : { x: 0, y: 0 }
   }
-  const concept = concepts.find(c => c.id === id)
+  const concept = concepts.find((c) => c.id === id)
   return concept ? getConceptCenter(concept) : { x: 0, y: 0 }
 }
 
@@ -71,11 +83,15 @@ export const getEndpointBoundsStateless = (
   connections: IConnection[]
 ) => {
   if (type === 'connection') {
-    const conn = connections.find(c => c.id === id)
-    return conn ? getConnectionBounds(conn, concepts, connections) : { x: 0, y: 0, width: 0, height: 0 }
+    const conn = connections.find((c) => c.id === id)
+    return conn
+      ? getConnectionBounds(conn, concepts, connections)
+      : { x: 0, y: 0, width: 0, height: 0 }
   }
-  const concept = concepts.find(c => c.id === id)
-  return concept ? getConceptBounds(concept) : { x: 0, y: 0, width: 0, height: 0 }
+  const concept = concepts.find((c) => c.id === id)
+  return concept
+    ? getConceptBounds(concept)
+    : { x: 0, y: 0, width: 0, height: 0 }
 }
 
 export const getEdgeIntersection = (
@@ -83,9 +99,9 @@ export const getEdgeIntersection = (
   toBounds: { x: number; y: number; width: number; height: number }
 ): { x: number; y: number } => {
   if (toBounds.width <= 0 || toBounds.height <= 0) {
-    return { 
-      x: toBounds.x + toBounds.width / 2, 
-      y: toBounds.y + toBounds.height / 2 
+    return {
+      x: toBounds.x + toBounds.width / 2,
+      y: toBounds.y + toBounds.height / 2,
     }
   }
 
@@ -102,7 +118,7 @@ export const getEdgeIntersection = (
 
   const absDx = Math.abs(dx)
   const absDy = Math.abs(dy)
-  
+
   const halfW = rw / 2
   const halfH = rh / 2
 
@@ -121,12 +137,32 @@ export const getConnectionEndpoints = (
   connection: IConnection,
   concepts: IConcept[],
   connections: IConnection[]
-): { from: { x: number; y: number }, to: { x: number; y: number } } => {
-  const rawFrom = getEndpointCenterStateless(connection.from, connection.fromType, concepts, connections)
-  const rawTo = getEndpointCenterStateless(connection.to, connection.toType, concepts, connections)
+): { from: { x: number; y: number }; to: { x: number; y: number } } => {
+  const rawFrom = getEndpointCenterStateless(
+    connection.from,
+    connection.fromType,
+    concepts,
+    connections
+  )
+  const rawTo = getEndpointCenterStateless(
+    connection.to,
+    connection.toType,
+    concepts,
+    connections
+  )
 
-  const fromBounds = getEndpointBoundsStateless(connection.from, connection.fromType, concepts, connections)
-  const toBounds = getEndpointBoundsStateless(connection.to, connection.toType, concepts, connections)
+  const fromBounds = getEndpointBoundsStateless(
+    connection.from,
+    connection.fromType,
+    concepts,
+    connections
+  )
+  const toBounds = getEndpointBoundsStateless(
+    connection.to,
+    connection.toType,
+    concepts,
+    connections
+  )
 
   return {
     from: getEdgeIntersection(rawTo, fromBounds),
@@ -168,7 +204,7 @@ function useConceptMapData() {
       return [
         {
           id: 0,
-          label: 'Concept 0',
+          label: 'Konzept 1',
           x: 150,
           y: 200,
           width: '100px',
@@ -176,7 +212,7 @@ function useConceptMapData() {
         },
         {
           id: 1,
-          label: 'Concept 1',
+          label: 'Konzept 2',
           x: 150,
           y: 500,
           width: '100px',
@@ -190,7 +226,7 @@ function useConceptMapData() {
       return [
         {
           id: 0,
-          label: 'Concept 0',
+          label: 'Konzept 1',
           x: 150,
           y: 200,
           width: '100px',
@@ -198,7 +234,7 @@ function useConceptMapData() {
         },
         {
           id: 1,
-          label: 'Concept 1',
+          label: 'Konzept 2',
           x: 150,
           y: 500,
           width: '100px',
@@ -215,11 +251,11 @@ function useConceptMapData() {
 
   const [connections, setConnections] = useState<IConnection[]>(() => {
     if (typeof window === 'undefined')
-      return [{ id: 0, label: 'Connection 0', from: 0, to: 1, width: '90' }]
+      return [{ id: 0, label: 'Verbindung 1', from: 0, to: 1, width: '90' }]
 
     const stored = localStorage.getItem(STORAGE_KEY)
     if (!stored)
-      return [{ id: 0, label: 'Connection 0', from: 0, to: 1, width: '90' }]
+      return [{ id: 0, label: 'Verbindung 1', from: 0, to: 1, width: '90' }]
 
     try {
       return JSON.parse(stored).connections ?? []
@@ -353,9 +389,13 @@ function useConceptMapData() {
     return concept ? getConceptCenter(concept) : { x: 0, y: 0 }
   }
 
-  const getConnectionCenterStateful = (id: number): { x: number; y: number } => {
+  const getConnectionCenterStateful = (
+    id: number
+  ): { x: number; y: number } => {
     const connection = connections.find((c) => c.id === id)
-    return connection ? getConnectionCenter(connection, concepts, connections) : { x: 0, y: 0 }
+    return connection
+      ? getConnectionCenter(connection, concepts, connections)
+      : { x: 0, y: 0 }
   }
 
   const getEndpointCenterStateful = (
@@ -367,7 +407,7 @@ function useConceptMapData() {
 
   const getConnectionEndpointsStateful = (
     connection: IConnection
-  ): { from: { x: number; y: number }, to: { x: number; y: number } } => {
+  ): { from: { x: number; y: number }; to: { x: number; y: number } } => {
     return getConnectionEndpoints(connection, concepts, connections)
   }
 

@@ -1,8 +1,8 @@
 'use client'
 
 import { memo, useLayoutEffect, useRef, useState } from 'react'
-import useDraggable from '../hooks/useDraggable'
-import useScalable from '../hooks/useScalable'
+import useDraggable from '@/hooks/canvas/useDraggable'
+import useScalable from '@/hooks/canvas/useScalable'
 
 interface ConceptProps {
   id: number
@@ -112,7 +112,7 @@ function Concept({
     ) {
       parsedHeight = textHeight
     }
-    
+
     if (
       prevTextDims.current.width > 0 &&
       textWidth < prevTextDims.current.width &&

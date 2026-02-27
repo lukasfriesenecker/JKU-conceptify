@@ -2,11 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { authClient } from '@/lib/auth-client'
 import Link from 'next/link'
-import { AuthKeyboard } from './AuthKeyboard'
-
+import { authClient } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
+import { AuthKeyboard } from '@/components/keyboard/AuthKeyboard'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -28,12 +27,15 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<'div'>) {
   const router = useRouter()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [activeInput, setActiveInput] = useState<'email' | 'password' | null>(null)
-  
+  const [activeInput, setActiveInput] = useState<'email' | 'password' | null>(
+    null
+  )
+
   const emailInputRef = useRef<HTMLInputElement>(null)
   const passwordInputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -74,7 +76,11 @@ export function LoginForm({
   }
 
   return (
-    <div className={cn('flex flex-col gap-6', className)} {...props} ref={containerRef}>
+    <div
+      className={cn('flex flex-col gap-6', className)}
+      {...props}
+      ref={containerRef}
+    >
       <Card>
         <CardHeader>
           <CardTitle>Anmelden</CardTitle>
@@ -103,7 +109,7 @@ export function LoginForm({
                   onFocus={() => setActiveInput('email')}
                   ref={emailInputRef}
                 />
-                
+
                 {activeInput === 'email' && (
                   <AuthKeyboard
                     value={email}
@@ -130,7 +136,7 @@ export function LoginForm({
                   onFocus={() => setActiveInput('password')}
                   ref={passwordInputRef}
                 />
-                
+
                 {activeInput === 'password' && (
                   <AuthKeyboard
                     value={password}

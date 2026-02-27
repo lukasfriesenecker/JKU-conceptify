@@ -1,7 +1,7 @@
 'use client'
 
 import { Palette, Pencil, Trash2, X } from 'lucide-react'
-import { Button } from './ui/button'
+import { Button } from '@/components/ui/button'
 
 interface ConceptMenuProps {
   concept: any

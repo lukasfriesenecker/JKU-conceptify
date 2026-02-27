@@ -8,6 +8,7 @@ interface ColorEditingState {
   id: number
   target: ColorTarget
 }
+
 function useSelectionState() {
   const [selectedConceptIds, setSelectedConceptIds] = useState<number[]>([])
   const [selectedConnectionIds, setSelectedConnectionIds] = useState<number[]>(

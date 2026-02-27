@@ -6,8 +6,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Cloud, FileDown, FolderPlus } from 'lucide-react'
 import { authClient } from '@/lib/auth-client'
+import { Cloud, FileDown, FolderPlus } from 'lucide-react'
 
 interface SaveMethodDialogProps {
   open: boolean
@@ -76,11 +76,13 @@ export default function SaveMethodDialog({
             )}
             <div className="flex flex-col items-start text-left">
               <span className="text-base font-semibold">
-                {supportsFileSystemAccess ? 'Datei speichern' : 'Datei herunterladen'}
+                {supportsFileSystemAccess
+                  ? 'Datei speichern'
+                  : 'Datei herunterladen'}
               </span>
               <span className="text-muted-foreground text-xs">
-                {supportsFileSystemAccess 
-                  ? 'Als JSON-Datei auf Ihrem Gerät speichern' 
+                {supportsFileSystemAccess
+                  ? 'Als JSON-Datei auf Ihrem Gerät speichern'
                   : 'Als JSON-Datei auf Ihr Gerät herunterladen'}
               </span>
             </div>

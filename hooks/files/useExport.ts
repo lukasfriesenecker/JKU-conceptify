@@ -8,7 +8,7 @@ import {
   getEndpointBoundsStateless,
   getEndpointCenterStateless,
   getEdgeIntersection,
-} from './useConceptMapData'
+} from '@/hooks/state/useConceptMapData'
 
 interface UseExportProps {
   svgRef: React.RefObject<SVGSVGElement | null>
@@ -43,10 +43,18 @@ function useExport({
       const padding = 40
       const offsetShift = 34
 
-      const getExportBounds = (id: number, type: 'concept' | 'connection' | undefined) => {
-        const bounds = getEndpointBoundsStateless(id, type, concepts, connections)
+      const getExportBounds = (
+        id: number,
+        type: 'concept' | 'connection' | undefined
+      ) => {
+        const bounds = getEndpointBoundsStateless(
+          id,
+          type,
+          concepts,
+          connections
+        )
         if (!type || type === 'concept') {
-          bounds.x += offsetShift 
+          bounds.x += offsetShift
 
           if (bounds.width > 50) {
             bounds.width -= offsetShift
@@ -58,11 +66,14 @@ function useExport({
         return bounds
       }
 
-      const getExportCenter = (id: number, type: 'concept' | 'connection' | undefined) => {
+      const getExportCenter = (
+        id: number,
+        type: 'concept' | 'connection' | undefined
+      ) => {
         const bounds = getExportBounds(id, type)
         return {
           x: bounds.x + bounds.width / 2,
-          y: bounds.y + bounds.height / 2
+          y: bounds.y + bounds.height / 2,
         }
       }
 
@@ -82,10 +93,16 @@ function useExport({
       }
 
       for (const connection of connections) {
-        const rawExportFrom = getExportCenter(connection.from, connection.fromType)
+        const rawExportFrom = getExportCenter(
+          connection.from,
+          connection.fromType
+        )
         const rawExportTo = getExportCenter(connection.to, connection.toType)
 
-        const exportFromBounds = getExportBounds(connection.from, connection.fromType)
+        const exportFromBounds = getExportBounds(
+          connection.from,
+          connection.fromType
+        )
         const exportToBounds = getExportBounds(connection.to, connection.toType)
 
         const exportFrom = getEdgeIntersection(rawExportTo, exportFromBounds)
@@ -94,11 +111,21 @@ function useExport({
         const exportMidX = (exportFrom.x + exportTo.x) / 2
         const exportMidY = (exportFrom.y + exportTo.y) / 2
 
-        const oldFrom = getEndpointCenterStateless(connection.from, connection.fromType, concepts, connections)
-        const oldTo = getEndpointCenterStateless(connection.to, connection.toType, concepts, connections)
+        const oldFrom = getEndpointCenterStateless(
+          connection.from,
+          connection.fromType,
+          concepts,
+          connections
+        )
+        const oldTo = getEndpointCenterStateless(
+          connection.to,
+          connection.toType,
+          concepts,
+          connections
+        )
         const oldMidX = (oldFrom.x + oldTo.x) / 2
 
-        const extraTargets = (connection.extraTargets || []).map(targetId => {
+        const extraTargets = (connection.extraTargets || []).map((targetId) => {
           const tBounds = getExportBounds(targetId, 'concept')
           const origin = { x: exportMidX, y: exportMidY }
           return getEdgeIntersection(origin, tBounds)
@@ -109,13 +136,18 @@ function useExport({
           to: exportTo,
           midShift: exportMidX - oldMidX,
           origMidX: oldMidX,
-          extraTargets
+          extraTargets,
         })
 
         const labelWidth = parseFloat(connection.width) + 10
         minX = Math.min(minX, exportFrom.x, exportTo.x, exportMidX - 45)
         minY = Math.min(minY, exportFrom.y, exportTo.y, exportMidY - 15)
-        maxX = Math.max(maxX, exportFrom.x, exportTo.x, exportMidX - 45 + labelWidth)
+        maxX = Math.max(
+          maxX,
+          exportFrom.x,
+          exportTo.x,
+          exportMidX - 45 + labelWidth
+        )
         maxY = Math.max(maxY, exportFrom.y, exportTo.y, exportMidY + 15)
 
         for (const tgt of extraTargets) {
@@ -242,42 +274,55 @@ function useExport({
         }
 
         const parentConnG = original.closest('g[data-connection-id]')
-        const connId = parentConnG ? parseInt(parentConnG.getAttribute('data-connection-id') || '-1', 10) : -1
+        const connId = parentConnG
+          ? parseInt(parentConnG.getAttribute('data-connection-id') || '-1', 10)
+          : -1
         const exportData = exportCoords.get(connId)
 
         if (original.tagName === 'line' && exportData) {
           const isMain = original.getAttribute('data-is-main-line') === 'true'
           const isExtra = original.getAttribute('data-is-extra-line') === 'true'
-          
+
           if (isMain) {
             cloned.setAttribute('x1', String(exportData.from.x))
             cloned.setAttribute('y1', String(exportData.from.y))
             cloned.setAttribute('x2', String(exportData.to.x))
             cloned.setAttribute('y2', String(exportData.to.y))
           } else if (isExtra) {
-            const idx = parseInt(original.getAttribute('data-extra-index') || '0', 10)
+            const idx = parseInt(
+              original.getAttribute('data-extra-index') || '0',
+              10
+            )
             const tgt = exportData.extraTargets[idx]
             if (tgt) {
-               const midX = (exportData.from.x + exportData.to.x) / 2
-               const midY = (exportData.from.y + exportData.to.y) / 2
-               cloned.setAttribute('x1', String(midX))
-               cloned.setAttribute('y1', String(midY))
-               cloned.setAttribute('x2', String(tgt.x))
-               cloned.setAttribute('y2', String(tgt.y))
+              const midX = (exportData.from.x + exportData.to.x) / 2
+              const midY = (exportData.from.y + exportData.to.y) / 2
+              cloned.setAttribute('x1', String(midX))
+              cloned.setAttribute('y1', String(midY))
+              cloned.setAttribute('x2', String(tgt.x))
+              cloned.setAttribute('y2', String(tgt.y))
             }
           }
         }
 
-        const isConnectionRect = original.getAttribute('data-export-type') === 'connection-rect'
-        const isConnectionText = original.getAttribute('data-export-type') === 'connection-text' || original.parentElement?.getAttribute('data-export-type') === 'connection-text'
-        const hidePointsStr = original.tagName === 'tspan' ? original.parentElement?.getAttribute('data-hide-points') : original.getAttribute('data-hide-points')
-        
+        const isConnectionRect =
+          original.getAttribute('data-export-type') === 'connection-rect'
+        const isConnectionText =
+          original.getAttribute('data-export-type') === 'connection-text' ||
+          original.parentElement?.getAttribute('data-export-type') ===
+            'connection-text'
+        const hidePointsStr =
+          original.tagName === 'tspan'
+            ? original.parentElement?.getAttribute('data-hide-points')
+            : original.getAttribute('data-hide-points')
+
         if (isConnectionRect && exportData) {
           const origW = parseFloat(original.getAttribute('width') || '0')
-          const w = hidePointsStr === 'false' ? (origW - 30) : origW
-          
+          const w = hidePointsStr === 'false' ? origW - 30 : origW
+
           const midX = (exportData.from.x + exportData.to.x) / 2
-          const targetX = hidePointsStr === 'false' ? (midX + 15 - origW / 2) : (midX - origW / 2)
+          const targetX =
+            hidePointsStr === 'false' ? midX + 15 - origW / 2 : midX - origW / 2
 
           cloned.setAttribute('width', String(w))
           cloned.setAttribute('x', String(targetX))
@@ -293,14 +338,20 @@ function useExport({
         }
 
         if (isConnectionText && exportData) {
-          const parentRect = original.closest('g[data-connection-id]')?.querySelector('rect')
+          const parentRect = original
+            .closest('g[data-connection-id]')
+            ?.querySelector('rect')
           const origW = parseFloat(parentRect?.getAttribute('width') || '0')
           const midX = (exportData.from.x + exportData.to.x) / 2
 
-          const targetX = hidePointsStr === 'false' ? (midX + 15 - origW / 2) : (midX - origW / 2)
+          const targetX =
+            hidePointsStr === 'false' ? midX + 15 - origW / 2 : midX - origW / 2
           const textX = targetX + 7
           cloned.setAttribute('x', String(textX))
-        } else if (original.tagName === 'text' || original.tagName === 'tspan') {
+        } else if (
+          original.tagName === 'text' ||
+          original.tagName === 'tspan'
+        ) {
           const currentX = original.getAttribute('x')
           const parentRect = original.closest('g')?.querySelector('rect')
 
@@ -395,9 +446,9 @@ function useExport({
         'path'
       )
       path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z')
-      
+
       path.setAttribute('fill', fgColor)
-      
+
       marker.appendChild(path)
       defs.appendChild(marker)
 

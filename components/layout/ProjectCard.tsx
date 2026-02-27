@@ -1,11 +1,11 @@
-import { Button } from './ui/button'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-} from './ui/card'
+} from '@/components/ui/card'
 import { Trash2 } from 'lucide-react'
 
 interface ProjectCardProps {
@@ -16,19 +16,25 @@ interface ProjectCardProps {
   onDelete?: (e: React.MouseEvent) => void
 }
 
-function ProjectCard({ title, description, thumbnail, onClick, onDelete }: ProjectCardProps) {
+function ProjectCard({
+  title,
+  description,
+  thumbnail,
+  onClick,
+  onDelete,
+}: ProjectCardProps) {
   return (
-    <Card className="relative mx-auto flex h-full w-full max-w-sm flex-col rounded-xs overflow-hidden pt-0 group border-border">
+    <Card className="group border-border relative mx-auto flex h-full w-full max-w-sm flex-col overflow-hidden rounded-xs pt-0">
       <img
-        src={thumbnail || "https://avatar.vercel.sh/shadcn1"}
+        src={thumbnail || 'https://avatar.vercel.sh/shadcn1'}
         alt="Project thumbnail"
-        className="relative z-20 aspect-video w-full object-cover border-b"
+        className="relative z-20 aspect-video w-full border-b object-cover"
       />
       {onDelete && (
         <Button
           variant="outline"
           size="icon"
-          className="absolute right-2 top-2 z-40 size-8"
+          className="absolute top-2 right-2 z-40 size-8"
           onClick={(e) => {
             e.stopPropagation()
             onDelete(e)

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Keyboard from 'react-simple-keyboard'
 import type { SimpleKeyboard } from 'react-simple-keyboard/build/interfaces'
 import 'react-simple-keyboard/build/css/index.css'
-import { useTheme } from './ThemeProvider'
+import { useTheme } from '@/components/layout/ThemeProvider'
 
 interface BaseKeyboardProps {
   keyboardRef?: (r: SimpleKeyboard | null) => void
@@ -63,7 +63,7 @@ export function BaseKeyboard({
         shift: [
           '° ! " § $ % & / { } = ? ` {bksp}',
           '{tab} Q W E R T Z U I O P Ü *',
-          '{lock} A S D F G H J K L Ö Ä \' {enter}',
+          "{lock} A S D F G H J K L Ö Ä ' {enter}",
           '{shift} > Y X C V B N M ; : _ @',
           '[ ] {space}',
         ],

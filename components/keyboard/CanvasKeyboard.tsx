@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import type { SimpleKeyboard } from 'react-simple-keyboard/build/interfaces'
-import { BaseKeyboard } from './BaseKeyboard'
+import { BaseKeyboard } from '@/components/keyboard/BaseKeyboard'
 
 interface IProps {
   id: number
@@ -13,7 +13,7 @@ interface IProps {
   onKeyboardReady?: (id: number, keyboard: SimpleKeyboard) => void
 }
 
-function KeyboardWrapper({
+function CanvasKeyboard({
   id,
   label,
   type,
@@ -33,7 +33,9 @@ function KeyboardWrapper({
           const currentInput = keyboard.getInput() ?? ''
           const caretPos = keyboard.getCaretPosition() ?? currentInput.length
           const newValue =
-            currentInput.slice(0, caretPos) + '   ' + currentInput.slice(caretPos)
+            currentInput.slice(0, caretPos) +
+            '   ' +
+            currentInput.slice(caretPos)
           skipNextOnChange.current = true
           keyboard.setInput(newValue)
           keyboard.setCaretPosition(caretPos + 3)
@@ -50,7 +52,6 @@ function KeyboardWrapper({
   }, [id, type, onChange, onCaretChange])
 
   const onKeyPress = (button: string) => {
-
     if (button === '{tab}') {
       const keyboard = keyboardRef.current
       if (keyboard) {
@@ -114,4 +115,4 @@ function KeyboardWrapper({
   )
 }
 
-export default KeyboardWrapper
+export default CanvasKeyboard

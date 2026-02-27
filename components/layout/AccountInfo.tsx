@@ -1,21 +1,21 @@
-import { ChevronDown, Database, LogOut, Settings } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { authClient } from '@/lib/auth-client'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from './ui/dropdown-menu'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { authClient } from '@/lib/auth-client'
-import { Button } from './ui/button'
+} from '@/components/ui/dropdown-menu'
+import { Button } from '@/components/ui/button'
+import { ChevronDown, Database, LogOut } from 'lucide-react'
 
 function AccountInfo() {
   const router = useRouter()
 
-  const { data: session, isPending } = authClient.useSession()
+  const { data: session } = authClient.useSession()
 
   const handleLogout = async () => {
     await authClient.signOut({

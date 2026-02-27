@@ -16,7 +16,10 @@ interface UseFileOperationsProps {
   setConcepts: React.Dispatch<React.SetStateAction<IConcept[]>>
   setConnections: React.Dispatch<React.SetStateAction<IConnection[]>>
   clearSelection: () => void
-  getThumbnail?: () => Promise<{ light: string | null; dark: string | null } | null>
+  getThumbnail?: () => Promise<{
+    light: string | null
+    dark: string | null
+  } | null>
 }
 
 function useFileOperations({
@@ -237,7 +240,10 @@ function useFileOperations({
       savedOnline = await handleSaveOnline()
     }
 
-    if (fileHandle || (currentSaveMethod === 'file' && !supportsFileSystemAccess)) {
+    if (
+      fileHandle ||
+      (currentSaveMethod === 'file' && !supportsFileSystemAccess)
+    ) {
       savedLocal = await handleSaveFile()
     }
 
@@ -254,7 +260,7 @@ function useFileOperations({
       }
       setIsSaveMethodDialogOpen(true)
     }
-    
+
     return false
   }
 
@@ -288,7 +294,7 @@ function useFileOperations({
     reader.readAsText(file)
   }
 
-  const handleOpen = async () => {
+  const handleOpenProject = async () => {
     if (!supportsFileSystemAccess) {
       fileInputRef.current?.click()
       return
@@ -364,7 +370,7 @@ function useFileOperations({
     handleSaveAs,
     handleSaveOnline,
     handleSaveProjectInfo,
-    handleOpen,
+    handleOpenProject,
     handleNewProject,
     handleDownload,
     handleFileInputChange,
