@@ -23,6 +23,8 @@ function CanvasKeyboard({
 }: IProps) {
   const keyboardRef = useRef<SimpleKeyboard | null>(null)
   const skipNextOnChange = useRef(false)
+  
+  const prevLabelRef = useRef(label)
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -50,6 +52,15 @@ function CanvasKeyboard({
       window.removeEventListener('keydown', handleKeyDown, true)
     }
   }, [id, type, onChange, onCaretChange])
+
+  useEffect(() => {
+    if (label !== prevLabelRef.current) {
+      if (keyboardRef.current) {
+        keyboardRef.current.setInput(label)
+      }
+      prevLabelRef.current = label
+    }
+  }, [label])
 
   const onKeyPress = (button: string) => {
     if (button === '{tab}') {
@@ -91,11 +102,12 @@ function CanvasKeyboard({
       skipNextOnChange.current = false
       return
     }
+    
+    const keyboard = keyboardRef.current
+    const newPos = keyboard?.getCaretPosition() ?? value.length
+    
     onChange(id, value, type)
-    const pos = keyboardRef.current?.getCaretPosition()
-    if (pos !== null && pos !== undefined) {
-      onCaretChange?.(id, pos)
-    }
+    onCaretChange?.(id, newPos)
   }
 
   return (

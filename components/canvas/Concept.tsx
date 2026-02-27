@@ -88,6 +88,7 @@ function Concept({
   const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(
     null
   )
+  const mountTime = useRef(Date.now())
 
   useLayoutEffect(() => {
     if (!textRef.current) return
@@ -190,6 +191,7 @@ function Concept({
   }, [caretPosition, label])
 
   const handleTextClick = (e: React.MouseEvent<SVGTextElement>) => {
+    if (Date.now() - mountTime.current < 400) return
     if (caretPosition === undefined || !onCaretClick || !textRef.current) return
     e.stopPropagation()
 
@@ -283,6 +285,7 @@ function Concept({
       onPointerMove={handlePointerMove}
       onClick={(e) => {
         e.stopPropagation()
+        if (Date.now() - mountTime.current < 400) return
         if (!hasMoved.current) {
           onSelect(id)
         }

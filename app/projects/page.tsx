@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Search, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import AccountInfo from '@/components/layout/AccountInfo'
 import ProjectCard from '@/components/layout/ProjectCard'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
+import { UIKeyboard } from '@/components/keyboard/UIKeyboard'
 import {
   Dialog,
   DialogContent,
@@ -24,6 +25,10 @@ function Page() {
   const [projects, setProjects] = useState<IProject[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [projectToOpen, setProjectToOpen] = useState<string | null>(null)
+  const [isSearchActive, setIsSearchActive] = useState(false)
+
+  const searchContainerRef = useRef<HTMLDivElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
   const [isUnsavedChangesDialogOpen, setisUnsavedChangesDialogOpen] =
     useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
@@ -47,6 +52,22 @@ function Page() {
       setResolvedTheme(theme as 'light' | 'dark')
     }
   }, [theme])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsSearchActive(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   useEffect(() => {
     async function fetchProjects() {
@@ -151,14 +172,27 @@ function Page() {
       <AccountInfo />
 
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 pt-26 pb-6 md:px-10">
-        <div className="bg-background relative mb-6 w-full shrink-0 md:w-80">
+        <div className="bg-background relative mb-6 w-full shrink-0 md:w-80" ref={searchContainerRef}>
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
             placeholder="Projekt suchen..."
-            className="pl-10"
+            className="pl-10 relative z-10"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setIsSearchActive(true)}
+            ref={searchInputRef}
           />
+          {isSearchActive && (
+            <UIKeyboard
+              value={searchQuery}
+              onChange={setSearchQuery}
+              onKeyPress={(btn) => {
+                if (btn === '{enter}') setIsSearchActive(false)
+              }}
+              onSave={() => setIsSearchActive(false)}
+              inputRef={searchInputRef}
+            />
+          )}
         </div>
 
         <div className="-mr-2 flex-1 overflow-y-auto pr-2">

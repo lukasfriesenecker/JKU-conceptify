@@ -6,7 +6,7 @@ import { BaseKeyboard } from '@/components/keyboard/BaseKeyboard'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
-interface AuthKeyboardProps {
+interface UIKeyboardProps {
   value: string
   onChange: (value: string) => void
   onKeyPress?: (button: string) => void
@@ -15,14 +15,14 @@ interface AuthKeyboardProps {
   inputRef?: React.RefObject<HTMLInputElement | null>
 }
 
-export function AuthKeyboard({
+export function UIKeyboard({
   value,
   onChange,
   onKeyPress,
   onSave,
   className,
   inputRef,
-}: AuthKeyboardProps) {
+}: UIKeyboardProps) {
   const [placement, setPlacement] = useState<'bottom' | 'top'>('bottom')
   const keyboardRef = useRef<SimpleKeyboard | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)

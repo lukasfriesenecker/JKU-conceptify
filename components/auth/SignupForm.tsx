@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { authClient } from '@/lib/auth-client'
-import { AuthKeyboard } from '@/components/keyboard/AuthKeyboard'
+import { UIKeyboard } from '@/components/keyboard/UIKeyboard'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -112,7 +112,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
                   ref={nameInputRef}
                 />
                 {activeInput === 'name' && (
-                  <AuthKeyboard
+                  <UIKeyboard
                     value={name}
                     onChange={setName}
                     onKeyPress={(btn) => {
@@ -136,7 +136,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
                   ref={emailInputRef}
                 />
                 {activeInput === 'email' && (
-                  <AuthKeyboard
+                  <UIKeyboard
                     value={email}
                     onChange={setEmail}
                     onKeyPress={(btn) => {
@@ -160,7 +160,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
                   ref={passwordInputRef}
                 />
                 {activeInput === 'password' && (
-                  <AuthKeyboard
+                  <UIKeyboard
                     value={password}
                     onChange={setPassword}
                     onKeyPress={(btn) => {
@@ -187,7 +187,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
                   ref={confirmPasswordInputRef}
                 />
                 {activeInput === 'confirmPassword' && (
-                  <AuthKeyboard
+                  <UIKeyboard
                     value={confirmPassword}
                     onChange={setConfirmPassword}
                     onKeyPress={(btn) => {

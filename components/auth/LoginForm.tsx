@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { authClient } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
-import { AuthKeyboard } from '@/components/keyboard/AuthKeyboard'
+import { UIKeyboard } from '@/components/keyboard/UIKeyboard'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -111,7 +111,7 @@ export function LoginForm({
                 />
 
                 {activeInput === 'email' && (
-                  <AuthKeyboard
+                  <UIKeyboard
                     value={email}
                     onChange={setEmail}
                     onKeyPress={(btn) => {
@@ -138,7 +138,7 @@ export function LoginForm({
                 />
 
                 {activeInput === 'password' && (
-                  <AuthKeyboard
+                  <UIKeyboard
                     value={password}
                     onChange={setPassword}
                     onKeyPress={(btn) => {
