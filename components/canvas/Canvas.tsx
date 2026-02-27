@@ -213,16 +213,40 @@ function Canvas() {
     }
   }, [])
 
-  const handleDoubleClick = (event: MouseEvent<SVGSVGElement>) => {
-    const svgElementPosition = event.currentTarget.getBoundingClientRect()
-    const localX = event.clientX - svgElementPosition.left
-    const localY = event.clientY - svgElementPosition.top
+  const lastTapRef = useRef<{ time: number; x: number; y: number; id: number } | null>(null)
 
-    const { x, y } = toCanvasCoordinates(localX, localY)
-    clearSelection()
-    addConcept(x, y, (newId) => {
-      startEditingConcept(newId)
-    })
+  const handlePointerDown = (event: React.PointerEvent<SVGSVGElement>) => {
+    const now = Date.now()
+    const DOUBLE_TAP_DELAY = 300
+    const DOUBLE_TAP_RADIUS = 40
+
+    const lastTap = lastTapRef.current
+    if (
+      lastTap &&
+      lastTap.id === event.pointerId &&
+      now - lastTap.time < DOUBLE_TAP_DELAY &&
+      Math.abs(event.clientX - lastTap.x) < DOUBLE_TAP_RADIUS &&
+      Math.abs(event.clientY - lastTap.y) < DOUBLE_TAP_RADIUS
+    ) {
+      const svgElementPosition = event.currentTarget.getBoundingClientRect()
+      const localX = event.clientX - svgElementPosition.left
+      const localY = event.clientY - svgElementPosition.top
+
+      const { x, y } = toCanvasCoordinates(localX, localY)
+      clearSelection()
+      addConcept(x, y, (newId) => {
+        startEditingConcept(newId)
+      })
+
+      lastTapRef.current = null
+    } else {
+      lastTapRef.current = {
+        time: now,
+        x: event.clientX,
+        y: event.clientY,
+        id: event.pointerId,
+      }
+    }
   }
 
   return (
@@ -421,7 +445,7 @@ function Canvas() {
       <svg
         ref={ref}
         className="h-full w-full"
-        onDoubleClick={handleDoubleClick}
+        onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handleGlobalPointerUp}
       >
